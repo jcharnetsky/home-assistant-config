@@ -82,6 +82,7 @@ input_select:
     options:
       - Auto
       - Manual On
+    initial: Auto
 
 input_datetime:
   alarm_time:
@@ -89,10 +90,18 @@ input_datetime:
     has_date: false
     has_time: true
     initial: '07:00:00'
+  temp_alarm_time:
+    name: Temperature Alarm Time
+    has_date: false
+    has_time: true
+    initial: '06:00:00'
 
 input_boolean:
   alarm_on:
     name: Alarm     
+    initial: on
+  temp_alarm_on:
+    name: Temperature Alarm     
     initial: on
   guests_present:
     name: Guests Present

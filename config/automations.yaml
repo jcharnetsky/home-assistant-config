@@ -224,7 +224,7 @@
         target_temp_high: "{{ states('input_number.sleep_temp_max') }}"
         target_temp_low: "{{ states('input_number.sleep_temp_min') }}"
 
-- alias: Weekday Alarm
+- alias: Alarm
   trigger:
     - platform: time_pattern
       minutes: '/1'
@@ -257,6 +257,35 @@
     - service: rest_command.tts_echo
       data_template:
         payload: Ring ring, ring ring, ring ring. Wake up! It is currently {{ states('sensor.openweathermap_temperature') | int }} Fahrenheit, {{ ((states('sensor.openweathermap_temperature') | float - 32) / 1.8) | int }} celsius and {{ states('weather.kdca_hourly') }}
+
+- alias: Temperature Alarm
+  trigger:
+    - platform: time_pattern
+      minutes: '/1'
+      seconds: 0
+  condition:
+    - condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.temp_alarm_on
+        state: 'on'
+      - condition: template
+        value_template: '{{ now().strftime("%H:%M") == (states.input_datetime.temp_alarm_time.attributes.timestamp | int | timestamp_custom("%H:%M", False)) }}'
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Sleeping'
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Home'
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Just Arrived'
+  action:
+    - service: rest_command.tts_echo
+      data_template:
+        payload: Wake up! Time to take your temperature
 
 - alias: Wake up
   trigger:

@@ -157,13 +157,26 @@ views:
           - person.josh
           - person.sofi
           - input_select.guest_mode
-      - type: glance
-        title: Alarms
-        show_name: true
-        show_state: true
-        entities:
-          - input_datetime.alarm_time
-          - input_boolean.alarm_on
+      - type: vertical-stack
+        cards:
+          - type: glance
+            title: Alarm
+            show_name: true
+            show_state: true
+            entities:
+              - entity: input_datetime.alarm_time
+                name: Time
+              - entity: input_boolean.alarm_on
+                name: State
+          - type: glance
+            title: Temperature Alarm
+            show_name: true
+            show_state: true
+            entities:
+              - entity: input_datetime.temp_alarm_time
+                name: Time
+              - entity: input_boolean.temp_alarm_on
+                name: State
       - type: vertical-stack
         cards:
           - type: horizontal-stack
