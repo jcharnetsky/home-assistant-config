@@ -1,0 +1,63 @@
+living_room_lights:
+  name: Living Room Lights
+  entities:
+    - light.living_room_lamp
+    - light.tv_lightstrip
+      
+den_lights:
+  name: Den Lights
+  entities:
+    - light.den_desk
+    - light.den_overhead_1
+    - light.den_overhead_2
+
+bedroom_lights:
+  name: Bedroom Lights
+  entities:
+    - light.bedroom_josh
+    - light.bedroom_sofi
+    - light.bedroom_dresser
+
+sun_room_lights:
+  name: Sun Room Lights
+  entities:
+    - light.sun_room_lamp
+    - switch.power_switch
+
+all_lights:
+  name: All lights
+  entities:
+    - light.entry_overhead
+    - light.den_overhead_1
+    - light.den_overhead_2
+    - light.den_desk
+    - light.living_room_lamp
+    - light.tv_lightstrip
+    - light.sun_room_lamp
+    - switch.power_switch
+    - light.bedroom_josh
+    - light.bedroom_sofi
+    - light.bedroom_dresser
+
+nonpresence_lights:
+  name: Non-presence Lights
+  entities:
+    - light.living_room_lamp
+    - light.tv_lightstrip
+    - light.sun_room_lamp
+    - switch.power_switch
+
+nonguest_lights:
+  name: Non-group Lights
+  entities:
+    - light.living_room_lamp
+    - light.bedroom_josh
+    - light.bedroom_sofi
+    - light.bedroom_dresser
+
+garmin_descent:
+  name: Garmin Descent
+  entities:
+    - automation.go_to_bed
+    - automation.turn_on_lights
+    - automation.turn_off_lights

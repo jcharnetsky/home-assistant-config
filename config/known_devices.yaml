@@ -1,0 +1,279 @@
+living_room_floor_lamp:
+  hide_if_away: false
+  icon:
+  mac: D0:73:D5:11:CA:2D
+  name: Living Room Floor Lamp
+  picture:
+  track: true
+
+taco:
+  hide_if_away: false
+  icon:
+  mac: A4:02:B9:E3:D7:35
+  name: taco
+  picture:
+  track: true
+
+70_20_84_bc_61_d5:
+  hide_if_away: false
+  icon:
+  mac: 70:20:84:BC:61:D5
+  name: 70 20 84 bc 61 d5
+  picture:
+  track: true
+
+64_b5_c6_52_7d_0e:
+  hide_if_away: false
+  icon:
+  mac: 64:B5:C6:52:7D:0E
+  name: 64 b5 c6 52 7d 0e
+  picture:
+  track: true
+
+ares:
+  hide_if_away: false
+  icon:
+  mac: 80:7A:BF:36:E9:AD
+  name: Ares
+  picture:
+  track: true
+
+athena:
+  hide_if_away: false
+  icon:
+  mac: D4:53:83:82:01:A1
+  name: Athena
+  picture:
+  track: true
+
+echo:
+  hide_if_away: false
+  icon:
+  mac: B8:27:EB:2A:E3:82
+  name: Echo
+  picture:
+  track: true
+
+50_33_8b_68_b8_49:
+  hide_if_away: false
+  icon:
+  mac: 50:33:8B:68:B8:49
+  name: 50 33 8b 68 b8 49
+  picture:
+  track: true
+
+apollo:
+  hide_if_away: false
+  icon:
+  mac: E4:70:B8:CD:19:78
+  name: Apollo
+  picture:
+  track: true
+
+galaxy_s9:
+  hide_if_away: false
+  icon:
+  mac: 8C:45:00:73:C5:0A
+  name: Galaxy-S9
+  picture:
+  track: true
+
+karandepsiphone:
+  hide_if_away: false
+  icon:
+  mac: F0:99:B6:0F:81:EC
+  name: KarandepsiPhone
+  picture:
+  track: true
+
+jordans_iphone:
+  hide_if_away: false
+  icon:
+  mac: 3C:2E:F9:53:B3:E5
+  name: Jordans-iPhone
+  picture:
+  track: true
+
+jordansplewatch:
+  hide_if_away: false
+  icon:
+  mac: 08:F4:AB:A9:58:AE
+  name: JordanspleWatch
+  picture:
+  track: true
+
+f0_4f_7c_5f_53_8e:
+  hide_if_away: false
+  icon:
+  mac: F0:4F:7C:5F:53:8E
+  name: f0 4f 7c 5f 53 8e
+  picture:
+  track: true
+
+dionysus:
+  hide_if_away: false
+  icon:
+  mac: 9C:2A:70:31:89:57
+  name: Dionysus
+  picture:
+  track: true
+
+sofi:
+  hide_if_away: false
+  icon:
+  mac: 08:D4:6A:E0:07:53
+  name: Sofi
+  picture:
+  track: true
+
+f8_95_ea_86_2c_52:
+  hide_if_away: false
+  icon:
+  mac: F8:95:EA:86:2C:52
+  name: f8 95 ea 86 2c 52
+  picture:
+  track: true
+
+ada:
+  hide_if_away: false
+  icon:
+  mac: 30:3A:64:99:CA:C8
+  name: Ada
+  picture:
+  track: true
+
+galaxywatchactive_bf95:
+  hide_if_away: false
+  icon:
+  mac: B0:6F:E0:8D:BF:96
+  name: GalaxyWatchActive-BF95
+  picture:
+  track: true
+
+friday:
+  hide_if_away: false
+  icon:
+  mac: 98:00:C6:9F:65:78
+  name: FRIDAY
+  picture:
+  track: true
+
+30_63_6b_6f_19_24:
+  hide_if_away: false
+  icon:
+  mac: 30:63:6B:6F:19:24
+  name: 30 63 6b 6f 19 24
+  picture:
+  track: true
+
+esp_0e499d:
+  hide_if_away: false
+  icon:
+  mac: 4C:11:AE:0E:49:9D
+  name: ESP 0E499D
+  picture:
+  track: true
+
+iphone:
+  hide_if_away: false
+  icon:
+  mac: 28:5A:EB:0C:0E:AF
+  name: iPhone
+  picture:
+  track: true
+
+peters_air:
+  hide_if_away: false
+  icon:
+  mac: 64:76:BA:B3:5C:C6
+  name: peters-Air
+  picture:
+  track: true
+
+android_957acd5b64ee58:
+  hide_if_away: false
+  icon:
+  mac: CC:61:E5:C1:42:2A
+  name: android-957acd5b64ee58
+  picture:
+  track: true
+
+octopi:
+  hide_if_away: false
+  icon:
+  mac: B8:27:EB:2D:C8:C4
+  name: octopi
+  picture:
+  track: true
+
+marks_iphone:
+  hide_if_away: false
+  icon:
+  mac: 94:16:25:93:E8:C2
+  name: Marks-iPhone
+  picture:
+  track: true
+
+fa_86_01_59_84_3d:
+  hide_if_away: false
+  icon:
+  mac: FA:86:01:59:84:3D
+  name: fa 86 01 59 84 3d
+  picture:
+  track: true
+
+e4_70_b8_cd_23_0a:
+  hide_if_away: false
+  icon:
+  mac: E4:70:B8:CD:23:0A
+  name: e4 70 b8 cd 23 0a
+  picture:
+  track: true
+
+jerrysiphone11:
+  hide_if_away: false
+  icon:
+  mac: CC:66:0A:4C:35:8C
+  name: JerrysiPhone11
+  picture:
+  track: true
+
+iphone_2:
+  hide_if_away: false
+  icon:
+  mac: D4:61:9D:98:8C:27
+  name: iPhone
+  picture:
+  track: true
+
+android_77d670df275aafce:
+  hide_if_away: false
+  icon:
+  mac: 18:3B:D2:A5:A5:59
+  name: android-77d670df275aafce
+  picture:
+  track: true
+
+iphone_3:
+  hide_if_away: false
+  icon:
+  mac: E8:FB:E9:9A:6C:AE
+  name: iPhone
+  picture:
+  track: true
+
+iphone_4:
+  hide_if_away: false
+  icon:
+  mac: 04:72:95:44:B7:DA
+  name: iPhone
+  picture:
+  track: true
+
+1c_4d_70_ce_16_02:
+  hide_if_away: false
+  icon:
+  mac: 1C:4D:70:CE:16:02
+  name: 1c 4d 70 ce 16 02
+  picture:
+  track: true

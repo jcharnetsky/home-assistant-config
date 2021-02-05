@@ -1,0 +1,132 @@
+GoToBed:
+  speech:
+    text: >
+      {% if is_state('input_boolean.alarm_on', 'on') %}
+        {% set hour = states('input_datetime.alarm_time').split(':')[0] | int %}
+        {% set minute = states('input_datetime.alarm_time').split(':')[1] %}
+        {% set ampm = 'A M' %} 
+        {% if hour > 12 %}
+          {% set hour = hour - 12 %}
+          {% set ampm = 'P M' %}
+        {% endif %}
+        Good night. The alarm is set for {{ hour }} {{ minute }} {{ ampm }}
+      {% else %}
+        Good night. The alarm is off
+      {% endif %}
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.location_status
+        option: Sleeping
+
+WakeUp:
+  speech:
+    text: Good morning
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.location_status
+        option: Home
+
+TurnOnLights:
+  action:
+    service: homeassistant.turn_on
+    data_template:
+      entity_id: group.{{ lightName }}_lights
+
+TurnOffLights:
+  action:
+    service: homeassistant.turn_off
+    data_template:
+      entity_id: group.{{ lightName }}_lights
+
+SetAlarmTime:
+  speech: 
+    text: >
+      {% if minute is defined %}
+        Alarm set for {{ hour }} {{ minute }} {{ ampm }}
+      {% else %}
+        Alarm set for {{ hour }} {{ ampm }}
+      {% endif %}
+  action:
+    - service: input_datetime.set_datetime
+      data_template:
+        entity_id: input_datetime.alarm_time
+        time: >-
+          {% set ns = namespace(hour = hour, minute = minute) %}
+          {% if minute is not defined %}
+            {% set ns.minute = '00' %}
+          {% endif %}
+
+          {% if ampm == 'A M' %}
+             {{ ns.hour }}:{{ ns.minute }}:00
+          {% else %}
+             {{ ns.hour + 12 }}:{{ ns.minute }}:00
+          {% endif %}
+
+GetAlarmTime:
+  speech:
+    text: >
+      {% if is_state('input_boolean.alarm_on', 'on') %}
+        {% set hour = states('input_datetime.alarm_time').split(':')[0] | int %}
+        {% set minute = states('input_datetime.alarm_time').split(':')[1] %}
+        {% set ampm = 'A M' %} 
+        {% if hour > 12 %}
+          {% set hour = hour - 12 %}
+          {% set ampm = 'P M' %}
+        {% endif %}
+        The alarm is set for {{ hour }} {{ minute }} {{ ampm }}
+      {% else %}
+        The alarm is off
+      {% endif %}
+
+AlarmOn:
+  speech: 
+    text: >
+      {% set hour = states('input_datetime.alarm_time').split(':')[0] | int %}
+      {% set minute = states('input_datetime.alarm_time').split(':')[1] %}
+      {% set ampm = 'A M' %} 
+      {% if hour > 12 %}
+        {% set hour = hour - 12 %}
+        {% set ampm = 'P M' %}
+      {% endif %}
+
+      The alarm is set for {{ hour }} {{ minute }} {{ ampm }}
+  action:
+    service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alarm_on
+
+AlarmOff:
+  speech: 
+    text: >
+      The alarm is now off
+  action:
+    service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.alarm_on
+
+GetTime:
+  speech:
+    text: >
+      It's {{ now().hour % 12 }} {{ now().minute }}
+
+GetRainTime:
+  speech:
+    text: >
+      {{ states('sensor.will_rain_long') }}
+
+GetTemperature:
+  speech:
+    text: >
+      {% set temp = states('sensor.openweathermap_temperature') %}
+      It's currently {{ temp | int }} Fahrenheit,  {{ ( ( temp | float - 32) / 1.8) | int }} Celsius.
+
+RunVacuum:
+  speech:
+    text: >
+      Vacuuming
+  action:
+    service: vacuum.start
+    data:
+      entity_id: vacuum.vacuum

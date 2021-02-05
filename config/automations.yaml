@@ -1,0 +1,535 @@
+- alias: Turn on all lights
+  trigger:
+    - platform: sun
+      event: sunset
+      offset: '-00:40:00'
+    - platform: numeric_state
+      entity_id: sensor.openweathermap_cloud_coverage
+      above: 70
+    - platform: state
+      entity_id: input_select.location_status
+      to: 'Just Arrived'
+  condition:
+    - condition: and
+      conditions:
+        - condition: or
+          conditions:
+            - condition: state
+              entity_id: input_select.location_status
+              state: 'Home'
+            - condition: state
+              entity_id: input_select.location_status
+              state: 'Just Arrived'
+        - condition: or
+          conditions:
+            - condition: sun
+              after: sunset
+              after_offset: '-00:40:00'
+            - condition: numeric_state
+              entity_id: sensor.openweathermap_cloud_coverage
+              above: 70
+  action:
+    service: homeassistant.turn_on
+    entity_id: group.nonpresence_lights
+
+- alias: Turn off all lights
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.openweathermap_cloud_coverage
+      below: 70
+      for:
+        minutes: 5
+    - platform: state
+      entity_id: input_select.location_status
+      to: 'Away'
+  condition:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Away'
+        - condition: and
+          conditions:
+          - condition: numeric_state
+            entity_id: sensor.openweathermap_cloud_coverage
+            below: 70
+          - condition: sun
+            before: sunset
+            before_offset: '-00:40:00' 
+          - condition: sun
+            after: sunrise
+  action:
+    service: homeassistant.turn_off
+    entity_id: group.nonpresence_lights
+
+- alias: Arrive home
+  trigger:
+    - platform: state
+      entity_id: device_tracker.athena_2
+      from: 'not_home'
+      to: 'home'
+    - platform: state
+      entity_id: device_tracker.galaxy_a01
+      from: 'not_home'
+      to: 'home'
+  condition:
+    - condition: or
+      conditions:
+      - condition: state
+        entity_id: input_select.location_status
+        state: 'Away'
+      - condition: state
+        entity_id: input_select.location_status
+        state: 'Extended Away'
+      - condition: state
+        entity_id: input_select.location_status
+        state: 'Just Left'
+  action:
+    - service: input_select.select_option
+      data_template:
+        entity_id: input_select.location_status
+        option: >
+          {% if states.input_select.location_status.state == 'Just Left' %}
+            Home
+          {% else %}
+            Just Arrived
+          {% endif %}
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.thermostat_mode
+        target_temp_high: "{{ states('input_number.home_temp_max') }}"
+        target_temp_low: "{{ states('input_number.home_temp_min') }}"
+
+- alias: Mark location as home
+  trigger:
+    - platform: state
+      entity_id: input_select.location_status
+      to: 'Just Arrived'
+      for:
+        minutes: 10
+    - platform: state
+      entity_id: input_select.location_status
+      from: 'Just Left'
+      to: 'Just Arrived'
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.location_status
+        option: Home
+
+- alias: Increment hours at home
+  trigger:
+    - platform: time_pattern
+      hours: '/1'
+      seconds: 00
+  condition:
+    - condition: state
+      entity_id: input_select.location_status
+      state: 'Home'
+  action:
+    - service: counter.increment
+      entity_id: counter.hours_at_home
+
+- alias: Leave home
+  trigger:
+    - platform: state
+      entity_id: device_tracker.athena_2
+      from: 'home'
+      to: 'not_home'
+    - platform: state
+      entity_id: device_tracker.galaxy_a01
+      from: 'home'
+      to: 'not_home'
+  condition:
+    - condition: and
+      conditions:
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Home'
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Just Arrived'
+      - condition: state
+        entity_id: device_tracker.athena_2
+        state: 'not_home'
+      - condition: state
+        entity_id: device_tracker.galaxy_a01
+        state: 'not_home'
+      - condition: state
+        entity_id: input_boolean.guests_present
+        state: 'off'
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.location_status
+        option: Just Left
+
+- alias: Mark location as away
+  trigger:
+    - platform: state
+      entity_id: input_select.location_status
+      to: 'Just Left'
+      for:
+        minutes: 2
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.location_status
+        option: Away
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.thermostat_mode
+        target_temp_high: "{{ states('input_number.away_temp_max') }}"
+        target_temp_low: "{{ states('input_number.away_temp_min') }}"
+
+- alias: Mark location as extended away
+  trigger:
+    - platform: state
+      entity_id: input_select.location_status
+      to: 'Away'
+      for:
+        hours: 24
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.location_status
+        option: Extended Away
+
+- alias: Go to bed
+  trigger:
+    - platform: state
+      entity_id: input_select.location_status
+      to: 'Sleeping'
+    - platform: event
+      event_type: rhasspy_GoToBed
+  action:
+    - service: light.turn_on
+      data:
+        entity_id: light.tv_lightstrip
+        brightness: 80
+        color_temp: 500
+    - service: homeassistant.turn_off
+      data_template:
+        entity_id: >
+          {% if is_state('input_boolean.guests_present', "on") %}
+            group.nonguest_lights
+          {% else %}
+            group.nonpresence_lights
+          {% endif %}
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.thermostat_mode
+        target_temp_high: "{{ states('input_number.sleep_temp_max') }}"
+        target_temp_low: "{{ states('input_number.sleep_temp_min') }}"
+
+- alias: Weekday Alarm
+  trigger:
+    - platform: time_pattern
+      minutes: '/1'
+      seconds: 0
+  condition:
+    - condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.alarm_on
+        state: 'on'
+      - condition: template
+        value_template: '{{ now().strftime("%H:%M") == (states.input_datetime.alarm_time.attributes.timestamp | int | timestamp_custom("%H:%M", False)) }}'
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Sleeping'
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Home'
+        - condition: state
+          entity_id: input_select.location_status
+          state: 'Just Arrived'
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.location_status
+        option: Home
+    - delay: 0:05
+    - service: rest_command.tts_echo
+      data_template:
+        payload: Ring ring, ring ring, ring ring. Wake up! It is currently {{ states('sensor.openweathermap_temperature') | int }} Fahrenheit, {{ ((states('sensor.openweathermap_temperature') | float - 32) / 1.8) | int }} celsius and {{ states('weather.kdca_hourly') }}
+
+- alias: Wake up
+  trigger:
+    - platform: state
+      entity_id: input_select.location_status
+      from: 'Sleeping'
+      to: 'Home'
+  action:
+    - service: light.turn_off
+      entity_id: light.tv_lightstrip
+    - service: homeassistant.turn_on
+      entity_id: group.bedroom_lights
+    - delay: 0:30
+    - service: homeassistant.turn_off
+      entity_id: group.bedroom_lights
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.thermostat_mode
+        target_temp_high: "{{ states('input_number.home_temp_max') }}"
+        target_temp_low: "{{ states('input_number.home_temp_min') }}"
+
+- alias: Run vacuum when away
+  trigger:
+    - platform: state
+      entity_id: input_select.location_status
+      to: 'Away'
+  condition:
+    condition: and
+    conditions:
+      - condition: numeric_state
+        entity_id: counter.hours_at_home
+        above: 12
+  action:
+    - service: vacuum.start
+      entity_id: vacuum.vacuum
+    - service: counter.reset
+      entity_id: counter.hours_at_home
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.vacuum_status
+        option: full
+
+- alias: Present vacuum
+  trigger: 
+    - platform: state
+      entity_id: input_select.location_status
+      to: 'Just Arrived'
+  condition:
+    - condition: state
+      entity_id: input_select.vacuum_status
+      state: 'full'
+  action:
+    - service: vacuum.start
+      data:
+        entity_id: vacuum.vacuum
+    - delay: 0:00:20
+    - service: vacuum.stop
+      data:
+        entity_id: vacuum.vacuum
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.vacuum_status
+        option: empty
+
+- alias: Notify on print finished
+  trigger:
+    - platform: state
+      entity_id: sensor.octoprint_current_state
+      from: 'Printing'
+      to: 'Operational'
+  action:
+    service: notify.matrix_notifier
+    data:
+      message: Print finished
+
+- alias: Presence in bedroom
+  trigger:
+    - platform: state
+      entity_id: sensor.bedroom_presence
+      to: 'True'
+  condition:
+    - condition: and
+      conditions:
+        - condition: or
+          conditions:
+            - condition: state
+              entity_id: input_select.location_status
+              state: 'Home'
+            - condition: state
+              entity_id: input_select.location_status
+              state: 'Just Arrived'
+        - condition: or
+          conditions:
+            - condition: sun
+              after: sunset
+              after_offset: '-00:40:00'
+            - condition: numeric_state
+              entity_id: sensor.openweathermap_cloud_coverage
+              above: 70
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - group.bedroom_lights
+
+- alias: No presence in bedroom
+  trigger:
+    - platform: state
+      entity_id: sensor.bedroom_presence
+      to: 'False'
+      for: '00:01:00'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - group.bedroom_lights
+
+- alias: Presence in den
+  trigger:
+    - platform: state
+      entity_id: sensor.den_presence
+      to: 'True'
+  action:
+    - service: homeassistant.turn_on
+      entity_id:
+        - group.den_lights
+    - service: mqtt.publish
+      data:
+        topic: hass/weather-display
+        payload_template: "{{ states('sensor.weather_display') }}"
+
+- alias: No presence in den
+  trigger:
+    - platform: state
+      entity_id: sensor.den_presence
+      to: 'False'
+      for: '00:01:00'
+  action:
+    - service: homeassistant.turn_off
+      entity_id:
+        - group.den_lights
+    - service: mqtt.publish
+      data:
+        topic: hass/weather-display-off
+
+- alias: Presence in entry
+  trigger:
+    - platform: state
+      entity_id: sensor.entry_presence
+      to: 'True'
+  action:
+    - service: homeassistant.turn_on
+      entity_id: light.entry_overhead
+    - service: mqtt.publish
+      data:
+        topic: hass/weather-display
+        payload_template: "{{ states('sensor.weather_display') }}"
+
+- alias: No presence in entry
+  trigger:
+    - platform: state
+      entity_id: sensor.entry_presence
+      to: 'False'
+      for: '00:00:30'
+  action:
+    - service: homeassistant.turn_off
+      entity_id: light.entry_overhead
+    - service: mqtt.publish
+      data:
+        topic: hass/weather-display-off
+
+- alias: Suggest windows
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.openweathermap_temperature
+      above: 70
+      below: 85
+  condition:
+    - condition: or
+      conditions:
+        - condition: state
+          entity_id: climate.thermostat_mode
+          state: 'heat_cool'
+        - condition: state
+          entity_id: climate.thermostat_mode
+          state: 'cool'
+        - condition: state
+          entity_id: climate.thermostat_mode
+          state: 'heat'
+  action:
+    - service: notify.mobile_app_athena
+      data:
+        message: "Switch to windows?"
+        data:
+          actions:
+            - action: "thermostat_off"
+              title: "Yes"
+            - action: "no_op"
+              title: "No"
+    - service: notify.mobile_app_sm_a015v
+      data:
+        message: "Switch to climate?"
+        data:
+          actions:
+            - action: "thermostat_on"
+              title: "Yes"
+            - action: "no_op"
+              title: "No"
+
+- alias: Suggest climate
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.thermostat_temperature
+      below: 65
+    - platform: numeric_state
+      entity_id: sensor.thermostat_temperature
+      above: 85
+  condition:
+    - condition: state
+      entity_id: climate.thermostat_mode
+      state: 'off'
+  action:
+    - service: notify.mobile_app_athena
+      data:
+        message: "Switch to climate?"
+        data:
+          actions:
+            - action: "thermostat_on"
+              title: "Yes"
+            - action: "no_op"
+              title: "No"
+    - service: notify.mobile_app_sm_a015v
+      data:
+        message: "Switch to climate?"
+        data:
+          actions:
+            - action: "thermostat_on"
+              title: "Yes"
+            - action: "no_op"
+              title: "No"
+
+- alias: Turn on thermostat
+  trigger:
+    platform: event
+    event_type: mobile_app_notification_action
+    event_data:
+      action: thermostat_on
+  action:
+    service: climate.turn_on
+    entity_id: climate.thermostat_mode
+
+- alias: Turn off thermostat
+  trigger:
+    platform: event
+    event_type: mobile_app_notification_action
+    event_data:
+      action: thermostat_off
+  action:
+    service: climate.turn_off
+    entity_id: climate.thermostat_mode
+
+- alias: Guests present
+  trigger:
+    - platform: state
+      entity_id: input_select.guest_mode
+      to: 'Manual On'
+  action:
+    service: input_boolean.turn_on
+    entity_id: input_boolean.guests_present
+
+- alias: Guests not present
+  trigger:
+    - platform: state
+      entity_id: input_select.guest_mode
+      to: 'Auto'
+  action:
+    service: input_boolean.turn_off
+    entity_id: input_boolean.guests_present

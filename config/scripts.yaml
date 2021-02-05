@@ -1,0 +1,16 @@
+mark_josh_as_sleeping:
+  alias: Mark Josh as sleeping
+  sequence:
+    - alias: Mark Josh as sleeping
+      service: input_select.select_option
+      data:
+        entity_id: input_select.josh_status_dropdown
+        option: Sleeping
+
+wake_desktop:
+  alias: Wake desktop
+  sequence:
+    - alias: Wake desktop
+      service: wake_on_lan.send_magic_packet
+      data:
+        mac: !secret desktop_mac

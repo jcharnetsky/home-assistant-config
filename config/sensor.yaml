@@ -1,0 +1,119 @@
+- platform: openweathermap
+  api_key: !secret openweathermap_api_key
+  monitored_conditions:
+    - weather
+    - temperature
+    - wind_speed
+    - wind_bearing
+    - humidity
+    - pressure
+    - clouds
+    - rain
+    - snow
+
+- platform: mqtt
+  name: "Den Presence Temp C"
+  state_topic: 'hass/0/temp'
+
+- platform: mqtt
+  name: "Bedroom Presence Temp C"
+  state_topic: 'hass/1/temp'
+
+- platform: template
+  sensors:
+    bedroom_presence_temp_f:
+      friendly_name: "Bedroom Presence Temp F"
+      value_template: >-
+          {{ states('sensor.bedroom_presence_temp_c')|float * 1.8 + 32.00 }}
+
+    den_presence_temp_f:
+      friendly_name: "Den Presence Temp F"
+      value_template: >-
+          {{ states('sensor.den_presence_temp_c')|float * 1.8 + 32.00 }}
+
+    bedroom_presence:
+      friendly_name: "Bedroom Presence"
+      value_template: >-
+          {{ (states('sensor.bedroom_presence_temp_f')|float) > ( 72.2 + states('input_number.bedroom_presence_offset')|float) }}
+
+    den_presence:
+      friendly_name: "Den Presence"
+      value_template: >-
+          {{ (states('sensor.den_presence_temp_f')|float) > ( 72.2 + states('input_number.den_presence_offset')|float) }}
+
+    entry_presence:
+      friendly_name: "Entry Presence"
+      value_template: >-
+          {{ is_state('sensor.4_in_1_burglar', '8') }}
+
+    weather_display:
+      value_template:  >-
+            {{ states('sensor.owm_temperature') }}  {{ states('sensor.will_rain') }}
+
+    will_rain:
+      friendly_name: "Is it going to rain?"
+      value_template:  >-
+        {% set ns = namespace(minutesToRain = "") %}
+
+        {% for hour in state_attr('weather.kdca_hourly', 'forecast') %}
+          {% if (as_timestamp(hour.datetime) - as_timestamp(now())) > 0 %}
+            {% if ns.minutesToRain == "" %}
+              {% if hour.condition|regex_match("rain") %}
+                  {% set ns.minutesToRain = (as_timestamp(hour.datetime) - as_timestamp(now())) %}
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        {%- endfor %}
+
+        {% if states('weather.kdca_hourly')|regex_match("rain") %}
+          Now
+        {% elif ns.minutesToRain == "" %}
+          No
+        {% else %}
+          {% if ns.minutesToRain > 86400 %}
+            In {{ (ns.minutesToRain / 60 / 60 / 24) | int }}d
+          {% elif ns.minutesToRain > 3600 %}
+            In {{ (ns.minutesToRain / 60 / 60) | int }}h
+          {% else %}
+            In {{ (ns.minutesToRain / 60) | int }}m
+          {% endif %}
+        {% endif %}
+
+    will_rain_long:
+      friendly_name: "Is it going to rain?"
+      value_template:  >-
+        {% set ns = namespace(minutesToRain = "") %}
+
+        {% for hour in state_attr('weather.kdca_hourly', 'forecast') %}
+          {% if (as_timestamp(hour.datetime) - as_timestamp(now())) > 0 %}
+            {% if ns.minutesToRain == "" %}
+              {% if hour.condition|regex_match("rain") %}
+                  {% set ns.minutesToRain = (as_timestamp(hour.datetime) - as_timestamp(now())) %}
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        {%- endfor %}
+
+        {% if states('weather.kdca_hourly')|regex_match("rain") %}
+          It's currently raining
+        {% elif ns.minutesToRain == "" %}
+          There is no rain in the forecast
+        {% else %}
+          {% if ns.minutesToRain > 86400 %}
+            In {{ (ns.minutesToRain / 60 / 60 / 24) | int }} days
+          {% elif ns.minutesToRain > 3600 %}
+            In {{ (ns.minutesToRain / 60 / 60) | int }} hours
+          {% else %}
+            In {{ (ns.minutesToRain / 60) | int }} minutes
+          {% endif %}
+        {% endif %}
+
+    do_i_need_a_jacket:
+      friendly_name: "Do I need a jacket?"
+      value_template:  >-
+          {% if states('sensor.owm_temperature')|float < 65  %}
+            Yes
+          {% else %}
+            No
+          {% endif %}
+

@@ -1,0 +1,15 @@
+- platform: flux
+  name: Brightness adjust flux
+  lights:
+    - group.bedroom_lights
+  mode: mired
+
+- platform: flux
+  name: Non-brightness adjust flux
+  lights:
+    - group.living_room_lights
+    - group.den_lights
+    - group.sun_room_lights
+    - light.entry_overhead
+  mode: mired
+  disable_brightness_adjust: true

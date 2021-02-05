@@ -1,0 +1,181 @@
+homeassistant:
+  name: Apartment
+  latitude: !secret home_lat
+  longitude: !secret home_long
+  elevation: 203
+  unit_system: imperial
+  time_zone: America/New_York
+  customize: !include customize.yaml
+
+recorder:
+  purge_keep_days: 2
+
+lovelace:
+  mode: yaml
+  resources:
+    - url: /local/time-picker-card.js
+      type: module
+
+system_health:
+  
+# Enables the frontend
+frontend: !include frontend.yaml
+
+# Enables configuration UI
+config:
+
+updater:
+
+# Discover some devices automatically
+discovery:
+
+mobile_app:
+
+# Enables support for tracking state changes over time
+history:
+
+# View all events in a logbook
+logbook:
+
+# Enables a map showing the location of tracked devices
+map:
+
+# Track the sun
+sun:
+
+# Text to speech
+rest_command:
+  tts_echo:
+    url: 'http://192.168.1.11:12101/api/text-to-speech'
+    method: POST
+    headers:
+      content_type: 'text/plain'
+    payload: '{{ payload }}'
+
+media_player:
+  - platform: snapcast
+    host: 192.168.1.4
+
+zwave:
+  usb_path: /dev/serial/by-id/usb-0658_0200-if00 
+  network_key: !secret zwave_network_key
+
+input_select:
+  location_status:
+    name: Location
+    options:
+      - Home
+      - Just Arrived
+      - Just Left
+      - Away
+      - Extended Away
+      - Sleeping
+    initial: Home
+  vacuum_status:
+    name: Vacuum Status
+    options:
+      - Full
+      - Empty
+    initial: Empty
+  guest_mode:
+    name: Guest Mode
+    options:
+      - Auto
+      - Manual On
+
+input_datetime:
+  alarm_time:
+    name: Alarm Time
+    has_date: false
+    has_time: true
+    initial: '07:00:00'
+
+input_boolean:
+  alarm_on:
+    name: Alarm     
+    initial: on
+  guests_present:
+    name: Guests Present
+    initial: off
+
+input_number:
+  bedroom_presence_offset:
+    name: Bedroom Presence Offset
+    initial: 0
+    min: -5
+    max: 5
+    step: 0.1
+  den_presence_offset:
+    name: Den Presence Offset
+    initial: 0
+    min: -5
+    max: 5
+    step: 0.1
+  sleep_temp_min:
+    name: Sleeping Temp Minimum
+    initial: 66
+    min: 60
+    max: 75
+    step: 0.5
+  sleep_temp_max:
+    name: Sleeping Temp Maximum
+    initial: 75
+    min: 70
+    max: 80
+    step: 0.5
+  home_temp_min:
+    name: Home Temp Minimum
+    initial: 68
+    min: 60
+    max: 75
+    step: 0.5
+  home_temp_max:
+    name: Home Temp Maximum
+    initial: 75
+    min: 70
+    max: 80
+    step: 0.5
+  away_temp_min:
+    name: Away Temp Minimum
+    initial: 66
+    min: 60
+    max: 75
+    step: 0.5
+  away_temp_max:
+    name: Away Temp Maximum
+    initial: 78
+    min: 70
+    max: 80
+    step: 0.5
+
+wake_on_lan:
+
+counter:
+  hours_at_home:
+    initial: 0
+    step: 1
+
+octoprint:
+  host: 192.168.1.5
+  api_key: !secret octoprint_api_key
+  bed: true
+  number_of_tools: 1
+
+neato:
+  username: !secret neato_username
+  password: !secret neato_password
+
+device_tracker:
+
+intent:
+
+weather:
+  - platform: openweathermap
+    api_key: !secret openweathermap_api_key
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+switch: !include switch.yaml
+sensor: !include sensor.yaml
+intent_script: !include intent_script.yaml

@@ -1,0 +1,328 @@
+views:
+  - title: Overview
+    icon: mdi:home-outline
+    cards:
+      - type: horizontal-stack
+        cards:
+          - type: sensor
+            entity: sensor.do_i_need_a_jacket
+            name: Jacket?
+            icon: mdi-weather-windy
+          - type: sensor
+            entity: sensor.will_rain
+            name: Rain?
+            icon: mdi-weather-rainy
+      - type: conditional
+        conditions:
+          - entity: input_boolean.guests_present
+            state: "on"
+        card:
+          type: button
+          entity: automation.leave_home
+          name: Leave
+          icon: mdi:door
+          tap_action:
+            action: call-service
+            service: automation.trigger
+            service_data:
+              entity_id: automation.leave_home
+      - type: weather-forecast
+        entity: weather.openweathermap
+      - type: thermostat
+        name: Thermostat
+        entity: climate.thermostat_mode
+      - type: entity-button
+        entity: vacuum.vacuum
+
+  - title: Media
+    icon:
+    cards:
+      - type: vertical-stack
+        cards:
+              - type: media-control
+                entity: media_player.kodi
+              - type: media-control
+                entity: media_player.snapcast_dionysus
+              - type: media-control
+                entity: media_player.snapcast_echo
+              - type: media-control
+                entity: media_player.snapcast_athena
+
+  - title: Rooms
+    icon:
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: horizontal-stack
+            title: Entry
+            cards:
+              - type: light
+                entity: light.entry_overhead
+          - type: vertical-stack
+            title: Den
+            cards:
+              - type: horizontal-stack
+                cards:
+                  - type: light
+                    entity: light.den_overhead_1
+                  - type: light
+                    entity: light.den_overhead_2
+              - type: horizontal-stack
+                cards:
+                  - type: light
+                    entity: light.den_desk
+                  - type: sensor
+                    name: Presence
+                    entity: sensor.den_presence
+              - type: horizontal-stack
+                cards:
+                  - type: button
+                    name: Presence Sensitivity
+                    icon: mdi:minus
+                    entity: input_number.den_presence_offset
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.den_presence_offset
+                  - type: button
+                    name: Presence Sensitivity
+                    icon: mdi:plus
+                    entity: input_number.den_presence_offset
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.den_presence_offset
+          - type: horizontal-stack
+            title: Living Room
+            cards:
+              - type: light
+                entity: light.living_room_lamp
+              - type: light
+                entity: light.tv_lightstrip
+          - type: horizontal-stack
+            title: Sun Room
+            cards:
+              - type: light
+                entity: light.sun_room_lamp
+              - type: button
+                entity: switch.power_switch
+          - type: vertical-stack
+            title: Bedroom
+            cards:
+              - type: horizontal-stack
+                cards:
+                  - type: light
+                    entity: light.bedroom_josh
+                  - type: light
+                    entity: light.bedroom_sofi
+              - type: horizontal-stack
+                cards:
+                  - type: light
+                    entity: light.bedroom_dresser
+                  - type: sensor
+                    name: Presence
+                    entity: sensor.bedroom_presence
+              - type: horizontal-stack
+                cards:
+                  - type: button
+                    name: Presence Sensitivity
+                    icon: mdi:minus
+                    entity: input_number.bedroom_presence_offset
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.bedroom_presence_offset
+                  - type: button
+                    name: Presence Sensitivity
+                    icon: mdi:plus
+                    entity: input_number.bedroom_presence_offset
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.bedroom_presence_offset
+
+  - title: Info
+    icon:
+    cards:
+      - type: glance
+        title: People
+        show_name: true
+        show_state: true
+        entities: 
+          - input_select.location_status
+          - person.josh
+          - person.sofi
+          - input_select.guest_mode
+      - type: glance
+        title: Alarms
+        show_name: true
+        show_state: true
+        entities:
+          - input_datetime.alarm_time
+          - input_boolean.alarm_on
+      - type: vertical-stack
+        cards:
+          - type: horizontal-stack
+            title: Sleeping Temp
+            cards:
+              - type: vertical-stack
+                cards:
+                  - type: button
+                    entity: input_number.sleep_temp_min
+                    icon: mdi:minus
+                    name: Min
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.sleep_temp_min
+                  - type: button
+                    entity: input_number.sleep_temp_min
+                    icon: mdi:plus
+                    name: Min
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.sleep_temp_min
+              - type: vertical-stack
+                cards:
+                  - type: button
+                    entity: input_number.sleep_temp_max
+                    icon: mdi:minus
+                    name: Max
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.sleep_temp_max
+                  - type: button
+                    entity: input_number.sleep_temp_max
+                    icon: mdi:plus
+                    name: Max
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.sleep_temp_max
+          - type: horizontal-stack
+            title: Home Temp
+            cards:
+              - type: vertical-stack
+                cards:
+                  - type: button
+                    entity: input_number.home_temp_min
+                    icon: mdi:minus
+                    name: Min
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.home_temp_min
+                  - type: button
+                    entity: input_number.home_temp_min
+                    icon: mdi:plus
+                    name: Min
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.home_temp_min
+              - type: vertical-stack
+                cards:
+                  - type: button
+                    entity: input_number.home_temp_max
+                    icon: mdi:minus
+                    name: Max
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.home_temp_max
+                  - type: button
+                    entity: input_number.home_temp_max
+                    icon: mdi:plus
+                    name: Max
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.home_temp_max
+          - type: horizontal-stack
+            title: Away Temp
+            cards:
+              - type: vertical-stack
+                cards:
+                  - type: button
+                    entity: input_number.away_temp_min
+                    icon: mdi:minus
+                    name: Min
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.away_temp_min
+                  - type: button
+                    entity: input_number.away_temp_min
+                    icon: mdi:plus
+                    name: Min
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.away_temp_min
+              - type: vertical-stack
+                cards:
+                  - type: button
+                    entity: input_number.away_temp_max
+                    icon: mdi:minus
+                    name: Max
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.away_temp_max
+                  - type: button
+                    entity: input_number.away_temp_max
+                    icon: mdi:plus
+                    name: Max
+                    show_state: true
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.away_temp_max
+      - type: glance
+        title: Vacuums
+        show_name: true
+        show_state: true
+        entities:
+          - input_select.vacuum_status
+      - type: glance
+        title: Octoprint
+        show_name: true
+        show_state: true
+        entities:
+          - sensor.octoprint_current_state
+          - sensor.octoprint_job_percentage
+          - sensor.octoprint_time_elapsed
+          - sensor.octoprint_time_remaining
+          - sensor.octoprint_actual_bed_temp
+          - sensor.octoprint_target_bed_temp
+          - sensor.octoprint_actual_tool0_temp
+          - sensor.octoprint_target_tool0_temp
