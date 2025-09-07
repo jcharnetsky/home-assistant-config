@@ -1,0 +1,551 @@
+views:
+  - title: Overview
+    icon: mdi:home-outline
+    cards:
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: lock.back_door
+          - type: button
+            entity: input_boolean.clothes_outside
+            name: Clothes Outside
+            icon: mdi:tshirt-crew
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              service_data:
+                entity_id: input_boolean.clothes_outside
+      - type: thermostat
+        name: Thermostat
+        entity: climate.thermostat
+      - type: entity
+        entity: input_select.travel_destination
+      - type: entity
+        name: Travel Time
+        entity: sensor.waze_travel_time
+
+  - title: Climate
+    icon: mdi:weather-partly-cloudy
+    cards:
+      - type: horizontal-stack
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - entity: binary_sensor.jacket_needed
+                    state: "on" 
+                card:
+                  type: glance
+                  show_name: false
+                  show_state: false
+                  entities:
+                    - entity: binary_sensor.jacket_needed
+                      icon: mdi:weather-windy
+              - type: conditional
+                conditions:
+                  - entity: sensor.minutes_to_rain
+                    state_not: "-1"
+                card:
+                  type: glance
+                  show_name: false
+                  entities:
+                    - entity: sensor.time_to_rain
+                      icon: mdi:weather-rainy
+      - type: conditional
+        conditions:
+          - entity: input_boolean.guests_present
+            state: "on"
+        card:
+          type: button
+          entity: automation.leave_home
+          name: Leave
+          icon: mdi:door
+          tap_action:
+            action: call-service
+            service: automation.trigger
+            service_data:
+              entity_id: automation.leave_home
+      - type: weather-forecast
+        entity: weather.openweathermap
+      - type: horizontal-stack
+        cards:
+          - type: sensor
+            entity: sensor.1f_thermal_comfort_heat_index
+            name: 1st floor
+            graph: line
+          - type: sensor
+            entity: sensor.2f_thermal_comfort_heat_index
+            name: 2nd floor
+            graph: line
+      - type: horizontal-stack
+        cards:
+          - type: sensor
+            entity: sensor.outside_heat_index
+            name: Outside
+            graph: line
+          - type: entity
+            entity: counter.minutes_heated
+            name: Minutes Heated
+      - type: history-graph
+        entities:
+            - entity: sensor.basement_flood_sensor_air_temperature
+              name: Basement Air Temperature
+            - entity: sensor.1f_thermal_comfort_heat_index
+            - entity: sensor.2f_thermal_comfort_heat_index
+        hours_to_show: 48
+      - type: history-graph
+        entities:
+            - entity: sensor.thermostat_humidity
+            - entity: sensor.4_in_1_humidity
+        hours_to_show: 48
+      - type: history-graph
+        entities:
+            - entity: sensor.basement_flood_sensor_air_temperature
+            - entity: sensor.1f_thermal_comfort_heat_index
+            - entity: sensor.2f_thermal_comfort_heat_index
+            - entity: sensor.outside_heat_index
+        hours_to_show: 48
+
+  - title: Media
+    icon:
+    cards:
+      - type: vertical-stack
+        cards:
+            - type: media-control
+              entity: media_player.kodi
+            - type: media-control
+              entity: media_player.snapcast_athena
+      - type: history-graph
+        entities:
+            - entity: sensor.speedtest_download
+        hours_to_show: 72
+
+  - title: Rooms
+    icon:
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: vertical-stack
+            title: First Floor
+            cards:
+              - type: glance
+                show_state: False
+                entities:
+                  - entity: light.entry_overhead
+                    name: Entry
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.entry_overhead
+                  - entity: switch.porch_receptacle
+                    name: Porch
+                    tap_action:
+                      action: call-service
+                      service: switch.toggle
+                      service_data:
+                        entity_id: switch.porch_receptacle
+              - type: glance
+                show_state: False
+                entities:
+                  - entity: light.living_room_table_lamp
+                    name: Living Room Lamp
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.living_room_table_lamp
+                  - entity: light.living_room_corner_lamp
+                    name: Living Room Corner Lamp
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.living_room_corner_lamp
+                  - entity: light.tv_lightstrip
+                    name: TV Lightstrip
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.tv_lightstrip
+              - type: glance
+                show_state: False
+                entities:
+                  - entity: light.breakfast_nook_lamp
+                    name: Breakfast Nook Lamp
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.breakfast_nook_lamp
+                  - entity: light.dining_room_lamp
+                    name: Dining Room Lamp
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.dining_room_lamp
+          - type: vertical-stack
+            title: Second Floor
+            cards:
+              - type: glance
+                show_state: False
+                entities:
+                  - entity: light.2f_closet_overhead
+                    show_title: False
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.2f_closet_overhead
+                  - entity: light.2f_hallway_overhead
+                    show_title: False
+                    name: Hallway
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.2f_hallway_overhead
+                  - entity: light.2f_bathroom_overhead
+                    show_title: False
+                    name: Bathroom
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.2f_bathroom_overhead
+          - type: vertical-stack
+            title: Bedroom
+            cards:
+              - type: glance
+                show_state: False
+                show_name: False
+                entities:
+                  - entity: light.bedroom_overhead
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.bedroom_overhead
+                  - entity: switch.bed_heater
+                    icon: mdi:fire
+                    tap_action:
+                      action: call-service
+                      service: switch.toggle
+                      service_data:
+                        entity_id: switch.bed_heater
+          - type: vertical-stack
+            title: Third Floor
+            cards:
+              - type: glance
+                show_state: False
+                entities:
+                  - entity: light.3f_hallway_overhead
+                    name: Hallway
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.3f_hallway_overhead
+              - type: glance
+                show_state: False
+                entities:
+                  - entity: light.3f_bathroom_overhead
+                    show_title: False
+                    name: Bathroom
+                    tap_action:
+                      action: call-service
+                      service: light.toggle
+                      service_data:
+                        entity_id: light.3f_bathroom_overhead
+              - type: horizontal-stack
+                cards:
+                  - type: glance
+                    show_name: False
+                    entities:
+                      - entity: binary_sensor.3f_bathroom_presence
+                        icon: mdi:human
+                        show_state: False
+                  - type: button
+                    name: Auto Lights
+                    entity: group.3f_bathroom_presence_automations
+                    tap_action:
+                      action: call-service
+                      service: homeassistant.toggle
+                      service_data:
+                        entity_id: group.3f_bathroom_presence_automations
+              - type: horizontal-stack
+                cards:
+                  - type: button
+                    name: Sensitivity
+                    icon: mdi:minus
+                    entity: input_number.3f_bathroom_presence_offset
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.3f_bathroom_presence_offset
+                  - type: button
+                    name: Update Snapshot
+                    tap_action:
+                      action: call-service
+                      service: rest_command.update_3f_thermal_sensor
+                  - type: button
+                    name: Sensitivity
+                    icon: mdi:plus
+                    entity: input_number.3f_bathroom_presence_offset
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.3f_bathroom_presence_offset
+
+  - title: Mail
+    icon:
+    cards:
+      - type: vertical-stack
+        title: USPS
+        cards:
+          - type: picture-entity
+            entity: camera.mail_usps_camera
+            camera_view: live
+            show_state: false
+            show_name: false
+          - type: glance
+            show_name: true
+            show_state: true
+            entities: 
+              - sensor.mail_usps_delivered
+              - sensor.mail_usps_delivering
+          - type: glance
+            show_name: true
+            show_state: true
+            entities: 
+              - sensor.mail_usps_exception
+              - sensor.mail_usps_mail
+          - type: glance
+            show_name: true
+            show_state: true
+            entities: 
+              - sensor.mail_usps_packages
+
+  - title: Locks
+    icon:
+    cards:
+      - type: horizontal-stack
+        title: Guest Code
+        cards:
+          - type: glance
+            show_name: false
+            show_state: true
+            entities: 
+              - input_text.guest_code
+          - type: button
+            icon: mdi:lock-reset
+            tap_action:
+              action: call-service
+              service: script.turn_on
+              service_data:
+                entity_id: script.generate_guest_code
+          - type: button
+            icon: mdi:lock-remove
+            tap_action:
+              action: call-service
+              service: script.turn_on
+              service_data:
+                entity_id: script.clear_guest_code
+      - type: horizontal-stack
+        title: Contractor Code
+        cards:
+          - type: glance
+            show_name: false
+            show_state: true
+            entities: 
+              - input_text.contractor_code
+          - type: button
+            icon: mdi:lock-reset
+            tap_action:
+              action: call-service
+              service: script.turn_on
+              service_data:
+                entity_id: script.generate_contractor_code
+          - type: button
+            icon: mdi:lock-remove
+            tap_action:
+              action: call-service
+              service: script.turn_on
+              service_data:
+                entity_id: script.clear_contractor_code
+  - title: Info
+    icon:
+    cards:
+      - type: vertical-stack
+        title: People
+        cards:
+          - type: glance
+            show_name: true
+            show_state: true
+            entities: 
+              - input_select.location_status
+              - person.josh
+              - person.sofi
+              - input_select.guest_mode
+      - type: vertical-stack
+        title: Auto Lights
+        cards:
+          - type: entities
+            entities:
+              - entity: binary_sensor.auto_lights
+              - type: attribute
+                entity: binary_sensor.auto_lights
+                attribute: probability
+                name: Probability
+              - entity: sensor.openweathermap_condition
+                name: Condition
+              - entity: sensor.openweathermap_cloud_coverage
+                name: Cloud Coverage
+              - type: attribute
+                entity: sun.sun
+                attribute: elevation
+                suffix: deg
+      - type: vertical-stack
+        cards:
+          - type: vertical-stack
+            title: Alarm
+            cards:
+              - type: entity
+                name: Time
+                entity: input_datetime.alarm_time
+              - type: horizontal-stack
+                cards:
+                  - type: button
+                    name: State
+                    entity: input_boolean.alarm_on
+                    tap_action:
+                      action: call-service
+                      service: input_boolean.toggle
+                      service_data:
+                        entity_id: input_boolean.alarm_on
+                  - type: button
+                    name: Lights
+                    entity: input_boolean.alarm_lights
+                    tap_action:
+                      action: call-service
+                      service: input_boolean.toggle
+                      service_data:
+                        entity_id: input_boolean.alarm_lights
+          - type: horizontal-stack
+            title: Sleep Confidence
+            cards:
+              - type: entity
+                name: Josh
+                entity: sensor.athena_sleep_confidence
+              - type: entity
+                name: Sofi
+                entity: sensor.papayita_sleep_confidence
+          - type: horizontal-stack
+            title: Temperature Alarm
+            cards:
+              - type: entity
+                name: Time
+                entity: input_datetime.temp_alarm_time
+              - type: button
+                name: State
+                entity: input_boolean.temp_alarm_on
+                tap_action:
+                  action: call-service
+                  service: input_boolean.toggle
+                  service_data:
+                    entity_id: input_boolean.temp_alarm_on
+          - type: horizontal-stack
+            title: Circadian Lighting
+            cards:
+              - type: button
+                show_name: True
+                entity: switch.circadian_lighting_default
+                tap_action:
+                  action: call-service
+                  service: switch.toggle
+                  service_data:
+                    entity_id: switch.circadian_lighting_default
+              - type: button
+                show_name: True
+                entity: switch.circadian_lighting_sleep_sensitive
+                tap_action:
+                  action: call-service
+                  service: switch.toggle
+                  service_data:
+                    entity_id: switch.circadian_lighting_sleep_sensitive
+      - type: vertical-stack
+        cards:
+          - type: vertical-stack
+            title: Thermostat
+            cards:
+              - type: horizontal-stack
+                cards:
+                  - type: button
+                    entity: input_number.sleep_temp
+                    icon: mdi:minus
+                    show_state: true
+                    name: Sleeping
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.sleep_temp
+                  - type: button
+                    entity: input_number.sleep_temp
+                    icon: mdi:plus
+                    show_state: true
+                    name: Sleeping
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.sleep_temp
+              - type: horizontal-stack
+                cards:
+                  - type: button
+                    entity: input_number.home_temp
+                    icon: mdi:minus
+                    show_state: true
+                    name: Home
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.home_temp
+                  - type: button
+                    entity: input_number.home_temp
+                    icon: mdi:plus
+                    show_state: true
+                    name: Home
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.home_temp
+              - type: horizontal-stack
+                cards:
+                  - type: button
+                    entity: input_number.away_temp
+                    icon: mdi:minus
+                    show_state: true
+                    name: Away
+                    tap_action:
+                      action: call-service
+                      service: input_number.decrement
+                      service_data:
+                        entity_id: input_number.away_temp
+                  - type: button
+                    entity: input_number.away_temp
+                    icon: mdi:plus
+                    show_state: true
+                    name: Away
+                    tap_action:
+                      action: call-service
+                      service: input_number.increment
+                      service_data:
+                        entity_id: input_number.away_temp

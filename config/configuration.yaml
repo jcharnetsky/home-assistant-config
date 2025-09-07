@@ -1,0 +1,246 @@
+homeassistant:
+  customize: !include customize.yaml
+  packages: !include_dir_named packages
+
+zone:
+  - name: Home
+    latitude: !secret latitude
+    longitude: !secret longitude
+    radius: 200
+
+recorder:
+
+lovelace:
+  mode: yaml
+  resources:
+    - url: /hacsfiles/lovelace-fold-entity-row/fold-entity-row.js
+      type: module
+
+system_health:
+  
+# Enables the frontend
+frontend: !include frontend.yaml
+
+# Enables configuration UI
+config:
+
+mobile_app:
+
+# Enables support for tracking state changes over time
+history:
+
+# View all events in a logbook
+logbook:
+
+# Enables a map showing the location of tracked devices
+map:
+
+# Track the sun
+sun:
+
+rest_command:
+  # Update thermal sensor base reading
+  update_3f_thermal_sensor:
+    url: 'http://192.168.1.10:8123/api/webhook/update_3f_thermal_sensor'
+    method: POST
+
+input_select:
+  location_status:
+    name: Location
+    options:
+      - Home
+      - Just Arrived
+      - Just Left
+      - Away
+      - Extended Away
+      - Sleeping
+  guest_mode:
+    name: Guest Mode
+    options:
+      - Auto
+      - Manual On
+  travel_destination:
+    name: Travel Destination
+    options:
+      - Work
+
+input_datetime:
+  alarm_time:
+    name: Alarm Time
+    has_date: false
+    has_time: true
+
+input_boolean:
+  alarm_on:
+    name: Alarm     
+  alarm_lights:
+    name: Alarm Lights
+  guests_present:
+    name: Guests Present
+  auto_lights:
+    name: Automatic Lights
+  clothes_outside:
+    name: Clothes Outside
+
+input_number:
+  3f_bathroom_presence_offset:
+    min: -20
+    max: 20
+    step: 0.1
+  sleep_temp:
+    name: Sleeping Temp Minimum
+    min: 60
+    max: 75
+    step: 0.5
+  home_temp:
+    name: Home Temp Minimum
+    min: 60
+    max: 75
+    step: 0.5
+  away_temp:
+    name: Away Temp Minimum
+    min: 60
+    max: 75
+    step: 0.5
+
+input_text:
+  guest_code:
+    mode: "password"
+    pattern: "[0-9]{6}"
+  contractor_code:
+    mode: "password"
+    pattern: "[0-9]{6}"
+
+wake_on_lan:
+
+counter:
+  hours_at_home:
+    initial: 0
+    step: 1
+    restore: true
+  minutes_heated:
+    initial: 0
+    step: 1
+    restore: true
+
+device_tracker:
+
+intent:
+
+circadian_lighting:
+
+duckdns:
+  domain: charnetskyhass
+  access_token: !secret ddns_token
+
+light:
+  - platform: group
+    name: Living Room Lights
+    entities:
+      - light.tv_lightstrip
+      - light.living_room_table_lamp
+      - light.living_room_corner_lamp
+
+  - platform: group
+    name: Bedroom Lights
+    entities:
+      - light.bedroom_overhead
+
+  - platform: group
+    name: All lights
+    entities:
+      - light.entry_overhead
+      - light.breakfast_nook_lamp
+      - light.dining_room_lamp
+      - light.tv_lightstrip
+      - light.living_room_table_lamp
+      - light.living_room_corner_lamp
+      - light.bedroom_overhead
+      - light.2f_closet_overhead
+      - light.2f_hallway_overhead
+      - light.2f_bathroom_overhead
+      - light.3f_bathroom_overhead
+
+  - platform: group
+    name: Nonpresence Lights
+    entities:
+      - light.entry_overhead
+      - light.breakfast_nook_lamp
+      - light.dining_room_lamp
+      - light.living_room_table_lamp
+      - light.living_room_corner_lamp
+      - light.tv_lightstrip
+      - light.bedroom_overhead
+      - light.2f_closet_overhead
+      - light.2f_hallway_overhead
+      - light.bedroom_overhead
+
+  - platform: group
+    name: Nonguest Lights
+    entities:
+      - light.living_room_lamp
+      - light.bedroom_overhead
+
+opnsense:
+  url: !secret opensense_url
+  api_key: !secret opnsense_api_key
+  api_secret: !secret opnsense_api_secret
+
+mqtt:
+  sensor:
+    - name: "3f bathroom thermal sensor"
+      state_topic: 'hass/presence/0/temp'
+      json_attributes_topic: 'hass/presence/0/attributes'
+
+    - name: "Theia1 Presence"
+      state_topic: 'presence/theia1'
+      json_attributes_topic: 'presence/theia1/attributes'
+
+rest:
+  - resource: !secret decent_url
+    scan_interval: 2
+    sensor:
+      - name: Decent Espresso State
+        unique_id: decentespresso_state
+        value_template: "{{ value_json.state }}"
+      - name: Decent Espresso Substate
+        unique_id: decentespresso_substate
+        value_template: "{{ value_json.substate }}"
+      - name: Decent Espresso Shot Count
+        unique_id: decentespresso_espresso_count
+        value_template: "{{ value_json.espresso_count|is_defined }}"
+      - name: Decent Espresso Steam Count
+        unique_id: decentespresso_steaming_count
+        value_template: "{{ value_json.steaming_count|is_defined }}"
+      - name: Decent Espresso Head Temperature
+        unique_id: decentespresso_head_temp
+        value_template: "{{ value_json.head_temperature|default(0)|round(1) }}"
+        unit_of_measurement: "ºC"
+      - name: Decent Espresso Mix Temperature
+        unique_id: decentespresso_mix_temp
+        value_template: "{{ value_json.mix_temperature|default(0)|round(1) }}"
+        unit_of_measurement: "ºC"
+      - name: Decent Espresso Steam Temperature
+        unique_id: decentespresso_steam_temp
+        value_template: "{{ value_json.steam_heater_temperature|default(0)|round(1) }}"
+        unit_of_measurement: "ºC"
+      - name: Decent Espresso Water Level
+        unique_id: decentespresso_water_level
+        value_template: "{{ value_json.water_level_ml|default(0) }}"
+        unit_of_measurement: ml
+      - name: Decent Espresso Profile
+        unique_id: decentespresso_profile
+        value_template: "{{ value_json.profile|replace('_', ' ') }}"
+
+prometheus:
+
+assist_pipeline:
+
+api:
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+switch: !include switch.yaml
+sensor: !include sensor.yaml
+template: !include template.yaml

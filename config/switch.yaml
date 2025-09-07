@@ -1,0 +1,39 @@
+- platform: circadian_lighting
+  name: Default
+  lights_ct:
+    - light.entry_lamp
+    - light.entry_overhead
+    - light.coffee_lightstrip
+    - light.breakfast_nook_lamp
+    - light.dining_room
+    - light.dining_room_lamp
+    - light.living_room_center_lamp
+    - light.living_room_north_lamp
+    - light.living_room_table_lamp
+    - light.living_room_corner_lamp
+    - light.hue_ambiance_lamp_1
+    - light.hue_ambiance_lamp_2
+    - light.3f_hallway_overhead
+    - light.3f_bathroom_overhead
+  min_brightness: 70
+
+- platform: circadian_lighting
+  name: Sleep Sensitive
+  lights_ct:
+    - light.bedroom_overhead
+    - light.2f_closet_overhead
+    - light.2f_bathroom_overhead
+    - light.2f_hallway_overhead
+  min_brightness: 40
+  sleep_entity: input_select.location_status
+  sleep_state: "Sleeping"
+  sleep_brightness: 40
+
+- platform: rest
+  name: "Decent Espresso"
+  resource: !secret decent_switch_url
+  body_on: '{"active": "true"}'
+  body_off: '{"active": "false"}'
+  is_on_template: "{{ value_json.is_active }}"
+  headers:
+      Content-Type: application/json

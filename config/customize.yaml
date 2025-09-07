@@ -1,0 +1,131 @@
+group.living_room_lights:
+  hidden: true
+group.bedroom_lights:
+  hidden: true
+group.all_lights: {}
+light.hue_ambiance_lamp_1_2:
+  friendly_name: Entry Light
+  icon: mdi:dome-light
+light.hue_ambiance_lamp_1:
+  friendly_name: Sun Room Lamp
+  icon: mdi:floor-lamp
+light.hue_lightstrip_plus_1:
+  friendly_name: Tv Light
+  icon: mdi:led-strip
+light.living_room_lamp:
+  friendly_name: Living Room Lamp
+  icon: mdi:floor-lamp
+light.living_room_desk_lamp:
+  friendly_name: Desk Lamp
+  icon: mdi:desk-lamp
+light.living_room_end_table_lamp:
+  friendly_name: End Table Lamp
+  icon: mdi:lamp
+light.bedroom_door_side_lamp:
+  friendly_name: Left Bed Lamp
+  icon: mdi:lamp
+light.bedroom_window_side_lamp:
+  friendly_name: Right Bed Lamp
+  icon: mdi:lamp
+group.all_switches: {}
+switch.flux:
+  friendly_name: Bedroom Flux
+switch.flux_2:
+  friendly_name: Living Room Flux
+switch.vacuum_schedule:
+  friendly_name: Vacuum Schedule
+  icon: mdi-robot-vacuum-variant
+camera.vacuum_cleaning_map:
+  friendly_name: Cleaning Map
+group.default_view:
+  icon: mdi:home
+zwave.aeotec_zw090_zstick_gen5_us:
+  friendly_name: Z-wave controller
+device_tracker.001788770b84:
+  friendly_name: Hue Bridge
+  hidden: true
+device_tracker.485d362e3e8e:
+  friendly_name: Router
+  hidden: true
+device_tracker.50338b68b849:
+  friendly_name: Vacuum
+device_tracker.64b5c6527d0e:
+  friendly_name: Nintendo Switch
+  hidden: true
+device_tracker.c45444702ead:
+  friendly_name: Tablet
+  hidden: true
+device_tracker.d073d511ca2d:
+  friendly_name: Lifx
+  hidden: true
+device_tracker.fcaa14825603:
+  friendly_name: Desktop
+  hidden: true
+group.all_scripts:
+  hidden: false
+group.all_automations:
+  hidden: false
+group.controls: {}
+sensor.josh_status:
+  icon: mdi:human-male
+sensor.taquito_battery:
+  friendly_name: Phone Battery
+device_tracker.702084bc61d5:
+  friendly_name: Tv
+device_tracker.josh_taquito:
+  friendly_name: Josh's Phone
+  source_type: router
+device_tracker.807abf36e9ad:
+  friendly_name: Ares
+device_tracker.e470b8cd1978:
+  friendly_name: Apollo
+sensor.octoprint_target_tool0_temp:
+  friendly_name: Target tool temp
+sensor.octoprint_actual_tool0_temp:
+  friendly_name: Actual tool temp
+climate.2gig_technologies_ct101_thermostat_iris_heating_1:
+  friendly_name: Thermostat
+climate.2gig_technologies_ct101_thermostat_iris_cooling_1:
+  friendly_name: Thermostat Cooling
+device_tracker.9cd08f584ff1:
+  friendly_name: Athena
+zwave.2gig_technologies_ct101_thermostat_iris:
+  friendly_name: Thermostat
+sensor.2gig_technologies_ct101_thermostat_iris_indicator:
+  friendly_name: Thermostat Indicator
+sensor.2gig_technologies_ct101_thermostat_iris_relative_humidity:
+  friendly_name: Thermostat Relative Humidity
+sensor.2gig_technologies_ct101_thermostat_iris_temperature:
+  friendly_name: Thermostat Temperature
+sensor.2gig_technologies_ct101_thermostat_iris_temperature_2:
+  friendly_name: Thermostat Temperature
+device_tracker.b827eb789d91:
+  friendly_name: Theseus
+device_tracker.fcecdaacdcad:
+  friendly_name: Ubiquiti AP
+sensor.octoprint_time_remaining:
+  friendly_name: Remaining
+sensor.octoprint_actual_bed_temp:
+  friendly_name: Actual bed temp
+sensor.octoprint_time_elapsed:
+  friendly_name: Time Elapsed
+sensor.octoprint_target_bed_temp:
+  friendly_name: Target bed temp
+binary_sensor.octoprint_printing:
+  friendly_name: Printing
+binary_sensor.octoprint_printing_error:
+  friendly_name: Printing Error
+sensor.octoprint_job_percentage:
+  friendly_name: Job Percentage
+sensor.octoprint_current_state:
+  friendly_name: Current State
+input_select.josh_status_dropdown:
+  icon: mdi:account
+device_tracker.a402b9e3d735:
+  friendly_name: Taco
+zwave.kwikset_touchpad_electronic_deadbolt_2:
+  friendly_name: Front Door Lock
+sensor.kwikset_touchpad_electronic_deadbolt_alarm_level_2:
+  friendly_name: Front Door Alarm Level
+sensor.kwikset_touchpad_electronic_deadbolt_alarm_type_2:
+  friendly_name: Front Door Alarm Type

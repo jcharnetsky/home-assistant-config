@@ -1,0 +1,63 @@
+go_to_bed:
+  alias: Go to bed
+  sequence:
+    - alias: Set location status
+      service: input_select.select_option
+      data:
+        option: Sleeping
+      target:
+        entity_id: input_select.location_status
+    - alias: Turn off lights
+      service: light.turn_off
+      target:
+        entity_id: light.all_lights
+
+wake_desktop:
+  alias: Wake desktop
+  sequence:
+    - alias: Wake desktop
+      service: wake_on_lan.send_magic_packet
+      data:
+        mac: !secret desktop_mac
+
+clear_guest_code:
+  sequence:
+    - service: input_text.set_value
+      data:
+        value: ''
+      target:
+        entity_id: input_text.guest_code
+    - service: zwave_js.clear_lock_usercode
+      data:
+        code_slot: '3'
+      target:
+        entity_id: lock.back_door
+
+generate_guest_code:
+  sequence:
+    - service: input_text.set_value
+      data_template:
+        value: "{{ range(0, 9) | random }} {{ range(0, 9) | random }} {{ range(0, 9) | random }} {{ range(0, 9) | random }} {{ range(0, 9) | random }} {{ range(0, 9) | random }}"
+      target:
+        entity_id: input_text.guest_code
+
+clear_contractor_code:
+  sequence:
+    - service: input_text.set_value
+      data:
+        value: ''
+      target:
+        entity_id: input_text.contractor_code
+    - service: zwave_js.clear_lock_usercode
+      data:
+        code_slot: '4'
+      target:
+        entity_id: lock.back_door
+
+generate_contractor_code:
+  sequence:
+    - service: input_text.set_value
+      data_template:
+        value: "{{ range(0, 9) | random }} {{ range(0, 9) | random }} {{ range(0, 9) | random }} {{ range(0, 9) | random }} {{ range(0, 9) | random }} {{ range(0, 9) | random }}"
+      target:
+        entity_id: input_text.contractor_code

@@ -1,0 +1,98 @@
+- trigger:
+        #- platform: time
+        #  at: "04:00:00"
+    - platform: webhook
+      webhook_id: update_3f_thermal_sensor
+  sensor:
+    - name: 3f_bathroom_thermal_sensor_snapshot
+      state: >
+          {% if is_state('binary_sensor.3f_bathroom_presence', 'true') %}
+            {{ states('sensor.3f_bathroom_thermal_sensor_snapshot') }}
+          {% else %} 
+            {{ states('sensor.3f_bathroom_thermal_sensor') }}
+          {% endif %}
+      attributes:
+        temps: >
+          {% if is_state('binary_sensor.3f_bathroom_presence', 'true') %}
+            {{ state_attr('sensor.3f_bathroom_thermal_sensor_snapshot', 'temps') }}
+          {% else %}
+            {{ state_attr('sensor.3f_bathroom_thermal_sensor', 'temps') }}
+          {% endif %}
+        room_temp: >
+          {% if is_state('binary_sensor.3f_bathroom_presence', 'true') %}
+            {{ state_attr('sensor.3f_bathroom_thermal_sensor_snapshot', room_temp) }}
+          {% else %}
+            {{ states('sensor.3f_bathroom_thermal_sensor') }}
+          {% endif %}
+
+- sensor:
+  binary_sensor:
+    - name: 3f_bathroom_presence
+      device_class: occupancy
+      state: >
+          {% set ns = namespace(
+                  num_active = 0,
+                  offset = (states('input_number.3f_bathroom_presence_offset') | float(0)),
+                  temp_diff = (states('sensor.3f_bathroom_thermal_sensor') | float(0) - state_attr('sensor.3f_bathroom_thermal_sensor_snapshot','room_temp') | float(0)))
+          %}
+
+          {% for i in range(state_attr('sensor.3f_bathroom_thermal_sensor', 'temps') | length) %}
+              {%- set ns.current_value = state_attr('sensor.3f_bathroom_thermal_sensor', 'temps')[i] %}
+              {%- set ns.snapshot_value = state_attr('sensor.3f_bathroom_thermal_sensor_snapshot', 'temps')[i] -%}
+              {%- if (ns.current_value - (ns.snapshot_value + ns.temp_diff)) > ns.offset -%}
+                  {% set ns.num_active = ns.num_active + 1 %}
+              {%- endif -%}
+          {% endfor %}
+
+          {%- if ns.num_active > 2 -%}
+              true
+          {%- else -%}
+              false
+          {%- endif -%}
+
+    - name: jacket_needed
+      state: >
+          {{ states('sensor.outside_heat_index') | int < 72 }}
+
+    - name: umbrella_needed
+      state: >
+        {{ states('sensor.minutes_to_rain') | int(0) < 480 and states('sensor.minutes_to_rain') | int(0) != -1 }}
+
+- sensor:
+    - name: minutes_to_rain
+      state:  >-
+        {% set ns = namespace(minutesToRain = "") %}
+
+        {% for hour in state_attr('weather.openweathermap', 'forecast') %}
+          {% if (as_timestamp(hour.datetime) - as_timestamp(now())) > 0 %}
+            {% if ns.minutesToRain == "" %}
+              {% if hour.condition | regex_match('.*rain.*|pouring|lightning') %}
+                {% set ns.minutesToRain = (as_timestamp(hour.datetime) - as_timestamp(now())) %}
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        {%- endfor %}
+
+        {% if states('sensor.openweathermap_condition') | regex_match('.*rain.*|pouring|lightning') %}
+          0
+        {% elif ns.minutesToRain == "" %}
+          -1
+        {% else %}
+          {{ (ns.minutesToRain / 60) | int }}
+        {% endif %}
+
+    - name: time_to_rain
+      state:  >-
+        {% if states('sensor.minutes_to_rain')|int(0) == -1 %}
+          No rain predicted
+        {% elif (states('sensor.minutes_to_rain')|int(0) /60) | int == 0 %}
+          Now
+        {% else %}
+          {% if states('sensor.minutes_to_rain')|int(0) > 1440 %}
+            In {{ '%0.1f'|format((states('sensor.minutes_to_rain')|int(0) / 60 / 24) | float(0)) }}d
+          {% elif states('sensor.minutes_to_rain')|int(0) > 60 %}
+            In {{ '%0.1f'|format((states('sensor.minutes_to_rain')|int(0) / 60) | float(0)) }}h
+          {% else %}
+            In {{ (states('sensor.minutes_to_rain')|int(0)) | float(0) }}m
+          {% endif %}
+        {% endif %}

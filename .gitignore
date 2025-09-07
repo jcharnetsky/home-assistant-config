@@ -1,0 +1,25 @@
+config/.storage
+config/pyozw.sqlite
+
+config/tts/
+config/www/
+config/zwave_device_config.yaml
+config/zwcfg_0xc750e465.xml
+
+config/.HA_VERSION
+config/.lesshst
+config/.shopping_list.json
+config/OZW_Log.txt
+config/blueprints/
+config/custom_components/
+config/fullchain.pem
+config/go2rtc-1.9.4
+config/go2rtc.yaml
+
+# Logs and db
+config/home-assistant.log*
+config/home-assistant_v2.db*
+
+# Secrets
+config/privkey.pem
+config/secrets.yaml

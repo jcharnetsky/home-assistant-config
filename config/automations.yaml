@@ -1,0 +1,1240 @@
+- alias: Initial setup
+  trigger:
+  - platform: homeassistant
+    event: start
+  action:
+  - service: rest_command.update_3f_thermal_sensor
+  id: 3d09f1e946df4de1b5f7ae5bab0c2317
+- id: 4af7f303bc764cf3ab202e5958e7a085
+  alias: Turn on static lights
+  description: ''
+  trigger:
+  - platform: sun
+    event: sunset
+    offset: -00:30:00
+  - platform: state
+    entity_id: input_select.location_status
+    to: Just Arrived
+  - platform: state
+    entity_id: input_select.location_status
+    from: Sleeping
+    to: Home
+  condition:
+  - condition: and
+    conditions:
+    - condition: or
+      conditions:
+      - condition: state
+        entity_id: input_select.location_status
+        state: Home
+      - condition: state
+        entity_id: input_select.location_status
+        state: Just Arrived
+    - condition: sun
+      after: sunset
+      after_offset: -00:30:00
+  action:
+  - service: light.turn_on
+    data_template:
+      entity_id: light.static_lights
+      kelvin: '{{ state_attr(''sensor.circadian_values'', ''colortemp'') | int(0)
+        }}'
+      brightness: 255
+- id: 953fbe678c0a43e580cc686faf4f7fa6
+  alias: Turn off static lights
+  description: ''
+  trigger:
+  - platform: sun
+    event: sunrise
+    offset: 00:30:00
+  - platform: state
+    entity_id: input_select.location_status
+    to: Away
+  action:
+  - service: light.turn_off
+    data: {}
+    target:
+      entity_id: light.static_lights
+- alias: Turn on porch lights
+  trigger:
+  - platform: sun
+    event: sunset
+    offset: -00:30:00
+  action:
+  - service: switch.turn_on
+    entity_id: switch.porch_receptacle
+  id: 2c1b1bfa5a3a4f7d8b7aa5d0a125c6b4
+- id: 1e623d30c42e40c099ec520aa7958eb1
+  alias: Turn off exterior lights
+  description: ''
+  trigger:
+  - platform: time
+    at: 02:00:00
+  action:
+  - service: switch.turn_off
+    entity_id: switch.porch_receptacle
+    alias: 'Turn off porch receptacle '
+  - type: turn_off
+    device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+    entity_id: 416305f7fb2bfb992efd7f655cdf6b88
+    domain: light
+- id: faa3820161cd406c974cf00f539ed8a3
+  alias: Turn off exterior lights (extended away)
+  description: ''
+  trigger:
+  - platform: time
+    at: '23:00:00'
+  condition:
+  - condition: state
+    entity_id: input_select.location_status
+    state: Extended Away
+  action:
+  - service: switch.turn_off
+    entity_id: switch.porch_receptacle
+    alias: 'Turn off porch receptacle '
+  - type: turn_off
+    device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+    entity_id: 416305f7fb2bfb992efd7f655cdf6b88
+    domain: light
+- alias: Arrive home
+  trigger:
+  - platform: state
+    entity_id: group.residents
+    from: not_home
+    to: home
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: input_select.location_status
+      state: Away
+    - condition: state
+      entity_id: input_select.location_status
+      state: Extended Away
+    - condition: state
+      entity_id: input_select.location_status
+      state: Just Left
+  action:
+  - service: lock.unlock
+    entity_id: lock.back_door
+  - service: input_select.select_option
+    data_template:
+      option: "{% if is_state('input_select.location_status', \"Just Left\") %}\n
+        \ Home\n{% else %}\n  Just Arrived\n{% endif %}\n"
+    target:
+      entity_id: input_select.location_status
+  - service: climate.set_temperature
+    data_template:
+      entity_id: climate.thermostat
+      temperature: "{% if \"06:00\" < (now().timestamp() | timestamp_custom('%H:%M'))
+        < \"22:00\" %}\n  {{ states('input_number.home_temp') }}\n{% else %}\n  {{
+        states('input_number.sleep_temp') }}\n{% endif %}"
+  id: 08812b7481e44d71b79d5cd14824740a
+- alias: Mark location as home
+  trigger:
+  - platform: state
+    entity_id: input_select.location_status
+    to: Just Arrived
+    for:
+      minutes: 10
+  - platform: state
+    entity_id: input_select.location_status
+    from: Just Left
+    to: Just Arrived
+  action:
+  - service: input_select.select_option
+    data:
+      option: Home
+    target:
+      entity_id: input_select.location_status
+  id: 947784ba0ea9477d9c7636398d2af4f1
+- alias: Increment hours at home
+  trigger:
+  - platform: time_pattern
+    hours: '*'
+  condition:
+  - condition: state
+    entity_id: input_select.location_status
+    state: Home
+  action:
+  - service: counter.increment
+    entity_id: counter.hours_at_home
+  id: b70c251bbe164bee8490db07de8861eb
+- alias: Increment minutes heated
+  trigger:
+  - platform: time_pattern
+    minutes: '*'
+  condition:
+  - condition: state
+    entity_id: climate.thermostat
+    attribute: hvac_action
+    state: heating
+  action:
+  - service: counter.increment
+    entity_id: counter.minutes_heated
+  id: 63c1223154fc41a599030d3acfe5af95
+- alias: Leave home
+  trigger:
+  - platform: state
+    entity_id: group.residents
+    from: home
+    to: not_home
+  condition:
+  - condition: and
+    conditions:
+    - condition: or
+      conditions:
+      - condition: state
+        entity_id: input_select.location_status
+        state: Home
+      - condition: state
+        entity_id: input_select.location_status
+        state: Just Arrived
+    - condition: state
+      entity_id: input_boolean.guests_present
+      state: 'off'
+  action:
+  - service: input_select.select_option
+    data:
+      option: Just Left
+    target:
+      entity_id: input_select.location_status
+  - service: lock.lock
+    entity_id: lock.back_door
+  id: d4d1631eb4484885b73505b467c22014
+- alias: Mark location as away
+  trigger:
+  - platform: state
+    entity_id: input_select.location_status
+    to: Just Left
+    for:
+      minutes: 2
+  action:
+  - service: input_select.select_option
+    data:
+      option: Away
+    target:
+      entity_id: input_select.location_status
+  - service: climate.set_temperature
+    target:
+      entity_id: climate.thermostat
+    data_template:
+      temperature: '{{ states(''input_number.away_temp'') }}'
+  - service: input_number.reload
+    entity_id: input_number.den_snapshot_updater
+  - service: input_number.reload
+    entity_id: input_number.bedroom_snapshot_updater
+  id: a3719bc77b70440c8ede7f724db348cb
+- alias: Mark location as extended away
+  trigger:
+  - platform: state
+    entity_id: input_select.location_status
+    to: Away
+    for:
+      hours: 24
+  action:
+  - service: input_select.select_option
+    data:
+      option: Extended Away
+    target:
+      entity_id: input_select.location_status
+  id: 51fd82662c5f4295a74d8880fb8a1b06
+- alias: Set heat to sleep mode
+  trigger:
+    platform: time
+    at: '22:00:00'
+  action:
+  - service: climate.set_temperature
+    data_template:
+      entity_id: climate.thermostat
+      temperature: '{{ states(''input_number.sleep_temp'') }}'
+  id: 2fb5f0a70ad54314b534d52798a115b5
+- alias: Turn on bed heater
+  trigger:
+  - platform: state
+    entity_id: input_select.location_status
+    to: Just Arrived
+  - platform: time
+    at: '22:15'
+  condition:
+  - condition: and
+    conditions:
+    - condition: or
+      conditions:
+      - condition: state
+        entity_id: input_select.location_status
+        state: Just Arrived
+      - condition: state
+        entity_id: input_select.location_status
+        state: Home
+      - condition: state
+        entity_id: input_select.location_status
+        state: Sleeping
+    - condition: numeric_state
+      entity_id: sensor.1f_thermal_comfort_heat_index
+      below: 68
+    - condition: time
+      after: '22:14'
+  action:
+  - service: switch.turn_on
+    entity_id: switch.bed_heater
+  id: d4c1c2da72ad4982bb3493ce9fd1ee45
+- id: 80f27bd5281a49b39a393b7f7d8574cb
+  alias: Go to bed
+  trigger:
+  - platform: state
+    entity_id: input_select.location_status
+    to: Sleeping
+  action:
+  - parallel:
+    - alias: Turn off nonpresence lights
+      service: light.turn_off
+      data: {}
+      target:
+        entity_id: light.static_lights
+    - device_id: 7cb935bec9a8b774558feb0da8b55158
+      domain: lock
+      entity_id: 39cb4059f4cbdab4797647da5573d156
+      type: lock
+    - service: climate.set_temperature
+      data_template:
+        entity_id: climate.thermostat
+        temperature: '{{ states(''input_number.sleep_temp'') }}'
+      alias: Set thermostat
+    - type: turn_off
+      device_id: f78b1a7927b2a2320369fc3fba0bc87f
+      entity_id: 313797684e452f022a6c6332695a7c5d
+      domain: switch
+    - type: turn_off
+      device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+      entity_id: 68e92fe790a5c87a4a500630e92d0a21
+      domain: light
+  - alias: Turn off nonpresence lights
+    service: light.turn_off
+    data: {}
+    target:
+      entity_id: light.static_lights
+- alias: Set heat 30min before alarm
+  trigger:
+    platform: template
+    value_template: '{ now().timestamp() | timestamp_custom(''%H:%M'') == (state_attr(''input_datetime.alarm_time'',
+      ''timestamp'') - 30 * 60) | timestamp_custom(''%H:%M'', false) }}'
+  action:
+  - service: climate.set_temperature
+    data_template:
+      entity_id: climate.thermostat
+      temperature: '{{ states(''input_number.home_temp'') }}'
+  id: 7005b7f4cc234c89a4593967e161b8be
+- alias: Turn on alarm lights 15min before alarm
+  trigger:
+    platform: template
+    value_template: '{{ now().timestamp() | timestamp_custom(''%H:%M'') == (state_attr(''input_datetime.alarm_time'',
+      ''timestamp'') - 15 * 60) | timestamp_custom(''%H:%M'', false) }}'
+  condition:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: input_boolean.alarm_on
+      state: 'on'
+    - condition: state
+      entity_id: input_select.location_status
+      state: Sleeping
+  action:
+  - service: input_boolean.turn_on
+    entity_id: input_boolean.alarm_lights
+  - service: light.turn_on
+    entity_id: light.bedroom_lights
+    data:
+      brightness: 0
+  - service: light.turn_on
+    entity_id: light.bedroom_lights
+    data:
+      brightness: 255
+      transition: 300
+  id: 8d596adedd9c424ba247d164c133f952
+- alias: Sound wakeup alarm
+  trigger:
+  - platform: time
+    at: input_datetime.alarm_time
+  condition:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: input_boolean.alarm_on
+      state: 'on'
+    - condition: state
+      entity_id: input_select.location_status
+      state: Sleeping
+  action:
+  - service: input_select.select_option
+    data:
+      option: Home
+    target:
+      entity_id: input_select.location_status
+  - service: switch.turn_off
+    entity_id: switch.bed_heater
+  - service: rest_command.tts_echo
+    data_template:
+      payload: Ring ring, ring ring, ring ring, ring ring. Wake up! It is {{ now().timestamp()
+        | timestamp_custom('%-I %-M %p') }} on {{ now().timestamp() | timestamp_custom('%A
+        %B %-d') }}
+  id: b2d7e64a96c749d2b6ca45e3efb34faf
+- alias: Deactivate alarm lights
+  trigger:
+    platform: template
+    value_template: '{{ now().timestamp() | timestamp_custom(''%H:%M'') == (state_attr(''input_datetime.alarm_time'',
+      ''timestamp'') + 30 * 60) | timestamp_custom(''%H:%M'', false) }}'
+  action:
+  - service: input_boolean.turn_off
+    entity_id: input_boolean.alarm_lights
+  id: e7681b44bef748959bb6a55e97a5fe88
+- alias: Turn off alarm lights
+  trigger:
+    platform: state
+    entity_id: input_boolean.alarm_lights
+    to: 'off'
+  condition:
+  - condition: sun
+    after: sunrise
+    after_offset: 00:30:00
+  action:
+  - service: light.turn_off
+    entity_id: light.bedroom_lights
+  id: f8aa5757cdb84350a3523c412f7eb3fe
+- alias: Wake up
+  trigger:
+  - platform: state
+    entity_id: input_select.location_status
+    from: Sleeping
+    to: Home
+  action:
+  - service: climate.set_temperature
+    data_template:
+      entity_id: climate.thermostat
+      temperature: '{{ states(''input_number.home_temp'') }}'
+  id: 3e5eb6a4e18e475aa8ec86d6d6da2770
+- alias: Turn on bedroom snapcast
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.bedroom_presence
+    to: 'on'
+  action:
+  - service: media_player.volume_mute
+    data:
+      entity_id: media_player.snapcast_bedroom
+      is_volume_muted: false
+  id: a33ef4265b2242c585055204942b0151
+- alias: Turn off bedroom snapcast
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.bedroom_presence
+    to: 'off'
+    for: 00:01:00
+  action:
+  - service: media_player.volume_mute
+    data:
+      entity_id: media_player.snapcast_bedroom
+      is_volume_muted: true
+  id: 34474c3fd0b547089f6f2f71693042cd
+- alias: Presence in 3f bathroom
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.3f_bathroom_presence
+    to: 'on'
+    for: 00:00:01
+  action:
+  - service: light.turn_on
+    data_template:
+      entity_id: light.3f_bathroom_overhead
+      kelvin: '{{ state_attr(''sensor.circadian_values'', ''colortemp'') | int(0)
+        }}'
+      brightness: 255
+  id: 1b551c4d4f644581a631be8f6e8f4333
+- alias: No presence in 3f bathroom
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.3f_bathroom_presence
+    to: 'off'
+    for: 00:00:5
+  action:
+  - service: light.turn_off
+    entity_id: light.3f_bathroom_overhead
+  id: ec543fe05e8e4c9199c94d6944ac69b6
+- alias: Theia1 presence
+  trigger:
+  - platform: state
+    entity_id: sensor.theia1_presence
+    to: 'true'
+  action:
+  - service: light.turn_on
+    data_template:
+      entity_id: light.living_room_table_lamp
+      kelvin: '{{ state_attr(''sensor.circadian_values'', ''colortemp'') | int(0)
+        }}'
+      brightness_pct: '{{ state_attr(''switch.circadian_lighting_sleep_sensitive'',
+        ''brightness'') | int(100) }}'
+  id: b4bca6eb65cb441382e190094dfa3b37
+- alias: Theia1 no presence
+  trigger:
+  - platform: state
+    entity_id: sensor.theia1_presence
+    to: 'false'
+    for: 00:01:00
+  action:
+  - service: light.turn_off
+    data_template:
+      entity_id: light.living_room_table_lamp
+  id: f63cb3eefe604a11b665b919ee477b65
+- alias: Suggest windows
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.1f_thermal_comfort_heat_index
+    below: 85
+    above: 70
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: climate.thermostat
+      state: heat_cool
+    - condition: state
+      entity_id: climate.thermostat
+      state: cool
+    - condition: state
+      entity_id: climate.thermostat
+      state: heat
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: Switch to windows?
+      data:
+        actions:
+        - action: thermostat_off
+          title: 'Yes'
+        - action: no_op
+          title: 'No'
+  - service: notify.mobile_app_papayita
+    data:
+      message: Switch to climate?
+      data:
+        actions:
+        - action: thermostat_on
+          title: 'Yes'
+        - action: no_op
+          title: 'No'
+  id: b4552d94615d48b1baf2b510578c4276
+- alias: Suggest climate
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.1f_thermal_comfort_heat_index
+    above: 85
+  - platform: numeric_state
+    entity_id: sensor.1f_thermal_comfort_heat_index
+    below: 68
+  condition:
+  - condition: state
+    entity_id: climate.thermostat
+    state: 'off'
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: Switch to climate?
+      data:
+        actions:
+        - action: thermostat_on
+          title: 'Yes'
+        - action: no_op
+          title: 'No'
+  - service: notify.mobile_app_papayita
+    data:
+      message: Switch to climate?
+      data:
+        actions:
+        - action: thermostat_on
+          title: 'Yes'
+        - action: no_op
+          title: 'No'
+  id: 362f4e01d8894051ba7bd4fb4c7941fc
+- alias: Turn on thermostat
+  trigger:
+    platform: event
+    event_type: mobile_app_notification_action
+    event_data:
+      action: thermostat_on
+  action:
+    service: climate.turn_on
+    entity_id: climate.thermostat
+  id: 15df620c8b0d4bdfa8d75715d7dc2ac4
+- alias: Turn off thermostat
+  trigger:
+    platform: event
+    event_type: mobile_app_notification_action
+    event_data:
+      action: thermostat_off
+  action:
+    service: climate.turn_off
+    entity_id: climate.thermostat
+  id: ed84529fbd6d4fa780090233ad046224
+- alias: Guests present
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_mode
+    to: Manual On
+  action:
+    service: input_boolean.turn_on
+    entity_id: input_boolean.guests_present
+  id: 6e249404f0054d12af06f58fc52739c2
+- alias: Guests not present
+  trigger:
+  - platform: state
+    entity_id: input_select.guest_mode
+    to: Auto
+  action:
+    service: input_boolean.turn_off
+    entity_id: input_boolean.guests_present
+  id: 5e4998bed5554972afe873f9965d2202
+- alias: Change contractor code
+  trigger:
+  - platform: state
+    entity_id: input_text.contractor_code
+  action:
+  - service: zwave_js.set_lock_usercode
+    data_template:
+      code_slot: '4'
+      user_code: '{{ states(''input_text.contractor_code'') }}'
+    target:
+      entity_id: lock.back_door
+  id: ca9934f0d81849abb78fd04a24373f66
+- alias: Notify mail
+  trigger:
+  - platform: time
+    at: '14:00'
+  condition:
+  - condition: numeric_state
+    entity_id: sensor.mail_usps_mail
+    above: 0
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: You've got mail
+  - service: notify.mobile_app_papayita
+    data:
+      message: You've got mail
+  id: 7f3dc591059d4194b6b6a0993f700c98
+- alias: Notify low battery
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.4_in_1_sensor_low_battery_level
+    - binary_sensor.back_door_lock_low_battery_level
+    - binary_sensor.thermostat_low_battery_level
+    to: 'on'
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: Z wave device low battery
+  id: 54366cd6162747a5b5b0e89001d1c680
+- alias: Notify flood sensor active
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.basement_flood_sensor_water_alarm_water_leak_detected
+    to: 'on'
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      title: Flood detected. Flood detected. Flood detected. Flood detected.
+      message: TTS
+      data:
+        ttl: 0
+        priority: high
+        channel: alarm_stream_max
+  - service: notify.mobile_app_athena
+    data:
+      message: Flood detected. Flood detected. Flood detected.
+  id: 3206bb3b18f94bba8ceceb9550f5390a
+- alias: Notify on rain when clothes outside
+  trigger:
+    platform: template
+    value_template: '{% if states(''sensor.openweathermap_condition'') | regex_match(''.*rain.*|pouring|lightning'')
+      %}true{% endif %}'
+  condition:
+  - condition: state
+    entity_id: input_boolean.clothes_outside
+    state: 'on'
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: La Ropaaaaaaa
+  - service: notify.mobile_app_papayita
+    data:
+      message: La Ropaaaaaaa
+  id: b982221f5dee454fbc50a175c531031e
+- alias: Notify highs and lows when away
+  trigger:
+  - platform: time
+    at: '8:00:00'
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: input_select.location_status
+      state: Away
+    - condition: state
+      entity_id: input_select.location_status
+      state: Extended Away
+  action:
+  - service: notify.mobile_app_athena
+    data_template:
+      message: '1f high: {{ states(''sensor.1f_thermal_comfort_heat_index_24h_high'')
+        }}° 2f high: {{ states(''sensor.2f_thermal_comfort_heat_index_24h_high'')
+        }}°
+
+        1f low: {{ states(''sensor.1f_thermal_comfort_heat_index_24h_low'') }}°  2f
+        low: {{ states(''sensor.2f_thermal_comfort_heat_index_24h_low'') }}°
+
+        '
+  id: ad9737c001614986843dfbcef491080c
+- alias: Notify 3d print finished
+  trigger:
+  - platform: state
+    entity_id: sensor.octoprint_current_state
+    from: Printing
+    to: Operational
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: Theseus done printing
+  id: 6832ecce9d674c388574478dfa7ca4d7
+- alias: Notify 3d print failed
+  trigger:
+  - platform: state
+    entity_id: sensor.octoprint_current_state
+    from: Printing
+    to: Unavailable
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: Theseus print failed
+  id: 56337245dd3c48758a4816d8a26bb7e2
+- id: '1701026431073'
+  alias: Turn on Christmas tree
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Just Arrived
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Home
+  - platform: time
+    at: '14:00:00'
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: input_select.location_status
+      state: Home
+    - condition: state
+      entity_id: input_select.location_status
+      state: Just Arrived
+  action:
+  - type: turn_on
+    device_id: 81cd4ea9fe665c3539c6662ce1f36c8d
+    entity_id: light.wled
+    domain: light
+  - type: turn_on
+    device_id: 81cd4ea9fe665c3539c6662ce1f36c8d
+    entity_id: 2f5692018af78283d3d463d96ccfb810
+    domain: light
+  mode: single
+- id: '1701026627689'
+  alias: Turn off Christmas tree
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Just Left
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Away
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Extended Away
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Sleeping
+  - platform: time
+    at: '10:00:00'
+  condition: []
+  action:
+  - type: turn_off
+    device_id: 81cd4ea9fe665c3539c6662ce1f36c8d
+    entity_id: 2f5692018af78283d3d463d96ccfb810
+    domain: light
+  - type: turn_off
+    device_id: 81cd4ea9fe665c3539c6662ce1f36c8d
+    entity_id: bfc422a276292a79b67801336f4afc1e
+    domain: light
+  mode: single
+- id: '1701032986024'
+  alias: Turn on Holiday lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Just Arrived
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Home
+  - platform: sun
+    event: sunset
+    offset: 00:10:00
+  condition:
+  - condition: sun
+    after: sunset
+    after_offset: 00:10:00
+  action:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: calendar.local_calendar
+        state: 'on'
+      - condition: state
+        entity_id: calendar.local_calendar
+        attribute: message
+        state: Christmas
+      sequence:
+      - type: turn_on
+        device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+        entity_id: 68e92fe790a5c87a4a500630e92d0a21
+        domain: light
+      - service: select.select_option
+        data:
+          option: Christmas
+        target:
+          entity_id: select.permanent_holiday_leds_playlist_2
+    - conditions:
+      - condition: state
+        entity_id: calendar.local_calendar
+        state: 'on'
+      - condition: state
+        entity_id: calendar.local_calendar
+        attribute: message
+        state: Valentine's
+      sequence:
+      - type: turn_on
+        device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+        entity_id: 68e92fe790a5c87a4a500630e92d0a21
+        domain: light
+      - service: select.select_option
+        data:
+          option: Valentine's
+        target:
+          entity_id: select.permanent_holiday_leds_playlist_2
+    default: []
+  mode: single
+- id: '1701034406995'
+  alias: Turn on patio lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Just Arrived
+  - platform: state
+    entity_id:
+    - binary_sensor.back_doorbell_person
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 2
+  condition:
+  - condition: and
+    conditions:
+    - condition: sun
+      after: sunset
+    - condition: state
+      entity_id: calendar.local_calendar
+      attribute: description
+      state: ''
+    - condition: state
+      state: 'off'
+      entity_id: light.permanent_holiday_leds_2
+  action:
+  - type: turn_on
+    device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+    entity_id: 416305f7fb2bfb992efd7f655cdf6b88
+    domain: light
+  - device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+    domain: select
+    entity_id: 965d091f55041887c01b3139ad4c247d
+    type: select_option
+    option: Back Patio
+  mode: single
+- id: '1705166480796'
+  alias: Notify person at back door
+  description: ''
+  trigger:
+  - type: turned_on
+    platform: device
+    device_id: f78c29fb2f4a4b88d5731971ef71adda
+    entity_id: dbb8521523b132df1311122ccf8f2f03
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 1
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: input_select.location_status
+      state: Just Left
+    - condition: state
+      entity_id: input_select.location_status
+      state: Away
+    - condition: state
+      entity_id: input_select.location_status
+      state: Extended Away
+    - condition: state
+      entity_id: input_select.location_status
+      state: Sleeping
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: Person detected at back door
+      data:
+        image: /api/camera_proxy/camera.back_doorbell_sub
+  - service: notify.mobile_app_sofisflipflop
+    data:
+      data:
+        image: /api/camera_proxy/camera.back_doorbell_sub
+      message: Person detected at back door
+  mode: single
+- id: '1705166771608'
+  alias: Person rang doorbell
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.back_doorbell_visitor
+    to: 'on'
+  condition: []
+  action:
+  - service: notify.mobile_app_athena
+    data:
+      message: You have a visitor
+      data:
+        image: /api/camera_proxy/camera.back_doorbell_sub
+  mode: single
+- id: '1705447613318'
+  alias: Turn off patio lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Home
+  - platform: state
+    entity_id:
+    - binary_sensor.back_doorbell_person
+    from: 'on'
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+  condition:
+  - condition: state
+    entity_id: calendar.local_calendar
+    attribute: description
+    state: ''
+  action:
+  - type: turn_off
+    device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+    entity_id: 416305f7fb2bfb992efd7f655cdf6b88
+    domain: light
+  mode: single
+- id: '1710283184357'
+  alias: Turn on St. Patrick's Day lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Just Arrived
+  - platform: state
+    entity_id:
+    - input_select.location_status
+    to: Home
+  - platform: sun
+    event: sunset
+    offset: 00:10:00
+  condition:
+  - condition: and
+    conditions:
+    - condition: sun
+      after: sunset
+      after_offset: 00:10:00
+    - condition: state
+      entity_id: calendar.local_calendar
+      state: St. Patrick's Day
+  action:
+  - type: turn_on
+    device_id: 12091fd9d6b38ec3e29bc57421bf1fb0
+    entity_id: 416305f7fb2bfb992efd7f655cdf6b88
+    domain: light
+  - service: select.select_option
+    data:
+      option: St. Patrick's Day
+    target:
+      entity_id: select.permanent_holiday_leds_playlist_2
+  mode: single
+- id: '1713640828723'
+  alias: Set guest code
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - input_text.guest_code
+  condition: []
+  action:
+  - device_id: 7cb935bec9a8b774558feb0da8b55158
+    domain: zwave_js
+    entity_id: 39cb4059f4cbdab4797647da5573d156
+    type: set_lock_usercode
+    code_slot: '3'
+    usercode: '{{ states(''input_text.guest_code'') }}'
+  mode: single
+- id: '1739127485121'
+  alias: Turn on coffee bar lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.decent_espresso_state
+    from: Sleep
+  condition:
+  - condition: or
+    conditions:
+    - condition: state
+      state: Home
+      entity_id: input_select.location_status
+    - condition: state
+      entity_id: input_select.location_status
+      state: Just Arrived
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: sensor.decent_espresso_state
+      state: unavailable
+  action:
+  - service: light.turn_on
+    data: {}
+    target:
+      entity_id: light.coffee_lightstrip
+  mode: single
+- id: '1739127652865'
+  alias: Turn off coffee bar lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.decent_espresso_state
+    to: Sleep
+  condition: []
+  action:
+  - service: light.turn_off
+    data: {}
+    target:
+      entity_id: light.coffee_lightstrip
+  mode: single
+- id: '1739718253187'
+  alias: Turn on dining room lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.apollo_msr_2_103b34_radar_target
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: binary_sensor.apollo_msr_2_103b34_radar_target
+      state: 'off'
+    then:
+    - service: light.turn_off
+      data:
+        transition: 2
+      target:
+        area_id: dining_room
+    else:
+    - if:
+      - condition: and
+        conditions:
+        - condition: state
+          entity_id: binary_sensor.apollo_msr_2_103b34_radar_target
+          state: 'on'
+        - type: is_illuminance
+          condition: device
+          device_id: f5c7d357529548e23c10637d0130f1d3
+          entity_id: 5b90f05f9e967b093bc956503c0fa8a4
+          domain: sensor
+          below: 10
+      then:
+      - service: light.turn_on
+        data: {}
+        target:
+          entity_id:
+          - light.dining_room
+          - light.dining_room_lamp
+  mode: restart
+- id: '1739718373625'
+  alias: Turn off dining room lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.apollo_msr_2_103b34_radar_moving_target
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 5
+  - platform: state
+    entity_id:
+    - binary_sensor.apollo_msr_2_103b34_radar_still_target
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 5
+  condition:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: binary_sensor.apollo_msr_2_103b34_radar_moving_target
+      state: 'off'
+    - condition: state
+      entity_id: binary_sensor.apollo_msr_2_103b34_radar_still_target
+      state: 'off'
+  action:
+  - service: light.turn_off
+    data: {}
+    target:
+      area_id: dining_room
+  - type: turn_off
+    device_id: f5c7d357529548e23c10637d0130f1d3
+    entity_id: ab1a2ae3bec267da02e046fddb170cd4
+    domain: light
+  mode: single
+- id: '1740017252340'
+  alias: Turn on closet light
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 1fa8b0f9ca57cd8638e77b3fca7baa64
+    entity_id: a118f4d2a4f3740d4b73a5d0d247e404
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 1
+  condition:
+  - condition: numeric_state
+    entity_id: sensor.4_in_1_illuminance
+    below: 15
+  action:
+  - service: light.turn_on
+    data: {}
+    target:
+      entity_id: light.2f_closet_overhead
+  mode: single
+- id: '1740017278288'
+  alias: Turn off closet light
+  description: ''
+  trigger:
+  - type: no_motion
+    platform: device
+    device_id: 1fa8b0f9ca57cd8638e77b3fca7baa64
+    entity_id: a118f4d2a4f3740d4b73a5d0d247e404
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+  condition: []
+  action:
+  - service: light.turn_off
+    data: {}
+    target:
+      entity_id: light.2f_closet_overhead
+  mode: single
+- id: '1740162339293'
+  alias: Toggle bedroom lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.bed_button
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+    from: 'on'
+  condition: []
+  action:
+  - if:
+    - condition: template
+      value_template: '{{ trigger.to_state.last_updated - trigger.from_state.last_updated
+        < as_timedelta("00:00:01") }}'
+    then:
+    - service: light.toggle
+      data: {}
+      target:
+        entity_id: light.bedroom_overhead
+    else: []
+  mode: single
+- id: '1740455802606'
+  alias: Toggle sleep
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.bed_button
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 1
+  condition: []
+  action:
+  - if:
+    - condition: state
+      entity_id: input_select.location_status
+      state: Sleeping
+    then:
+    - service: input_select.select_option
+      data:
+        option: Home
+      target:
+        entity_id: input_select.location_status
+    else:
+    - service: input_select.select_option
+      data:
+        option: Sleeping
+      target:
+        entity_id: input_select.location_status
+  mode: single

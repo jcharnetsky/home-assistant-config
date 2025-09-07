@@ -1,0 +1,24 @@
+- platform: statistics
+  name: "1f heatindex 24h high"
+  entity_id: sensor.1f_thermal_comfort_heat_index
+  state_characteristic: value_max
+  max_age:
+    hours: 24
+- platform: statistics
+  name: "1f heatindex 24h low"
+  entity_id: sensor.1f_thermal_comfort_heat_index
+  state_characteristic: value_min
+  max_age:
+    hours: 24
+- platform: statistics
+  name: "2f heatindex 24h high"
+  entity_id: sensor.2f_thermal_comfort_heat_index
+  state_characteristic: value_max
+  max_age:
+    hours: 24
+- platform: statistics
+  name: "2f heatindex 24h low"
+  entity_id: sensor.2f_thermal_comfort_heat_index
+  state_characteristic: value_min
+  max_age:
+    hours: 24

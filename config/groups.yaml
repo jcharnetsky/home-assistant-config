@@ -1,0 +1,30 @@
+living_room_lights:
+  name: Living Room Lights
+  entities:
+    - light.living_room_lights
+      
+den_lights:
+  name: Den Lights
+  entities:
+    - light.den_lights
+
+bedroom_lights:
+  name: Bedroom Lights
+  entities:
+    - light.bedroom_lights
+
+residents:
+  name: Residents
+  entities:
+    - person.josh
+    - person.sofi
+
+3f_bathroom_presence_automations:
+  entities:
+    - automation.presence_in_3f_bathroom
+    - automation.no_presence_in_3f_bathroom
+
+bedroom_presence_automations:
+  entities:
+    - automation.presence_in_bedroom
+    - automation.no_presence_in_bedroom
